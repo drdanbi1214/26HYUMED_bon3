@@ -31,6 +31,7 @@ export const RestaurantsPage: React.FC<RestaurantsPageProps> = ({ isDark, onTogg
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -68,23 +69,39 @@ export const RestaurantsPage: React.FC<RestaurantsPageProps> = ({ isDark, onTogg
 
       <div className="space-y-5 animate-in fade-in slide-in-from-right duration-500 pb-16">
         {/* 검색 + 등록 버튼 */}
-        <div className="flex gap-2">
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="음식점 이름 검색"
-            className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 shadow-sm"
-          />
-          <button
-            onClick={() => setShowForm(v => !v)}
-            className={`px-5 rounded-2xl font-bold text-sm shadow-md active:scale-95 transition-all ${
-              showForm
-                ? "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
-                : "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
-            }`}
-          >
-            {showForm ? "닫기" : "등록"}
-          </button>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setShowSearch(v => !v); setQuery(""); }}
+              className={`px-5 py-3 rounded-2xl font-bold text-sm shadow-md active:scale-95 transition-all ${
+                showSearch
+                  ? "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
+                  : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200"
+              }`}
+            >
+              🔍 검색
+            </button>
+            <div className="flex-1" />
+            <button
+              onClick={() => setShowForm(v => !v)}
+              className={`px-5 rounded-2xl font-bold text-sm shadow-md active:scale-95 transition-all ${
+                showForm
+                  ? "bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
+                  : "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+              }`}
+            >
+              {showForm ? "닫기" : "등록"}
+            </button>
+          </div>
+          {showSearch && (
+            <input
+              autoFocus
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="음식점 이름 검색"
+              className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 shadow-sm"
+            />
+          )}
         </div>
 
         {showForm && (
