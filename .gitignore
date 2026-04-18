@@ -3,6 +3,8 @@ dist
 dist-ssr
 dist2
 dist3
+dist-verify
+dist-*
 *.local
 .env
 .env.local

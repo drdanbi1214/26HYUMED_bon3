@@ -16,7 +16,7 @@ interface MenuPageProps {
 
 export const MenuPage: React.FC<MenuPageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
-  const { data, loading, error, save, refetch } = useMenu();
+  const { imageUrl, loading, error, uploading, uploadAndSave, refetch } = useMenu();
   const [editing, setEditing] = useState(false);
   const [clickCount, setClickCount] = useState(0);
   const toast = useToast();
@@ -33,17 +33,17 @@ export const MenuPage: React.FC<MenuPageProps> = ({ isDark, onToggleDark }) => {
     }
   };
 
-  const handleSave = async (content: string) => {
+  const handleSave = async (file: File) => {
     if (!isSupabaseConfigured) {
-      toast.error("Supabase가 설정되지 않아 저장할 수 없어요.");
+      toast.error("Supabase가 설정되지 않아 업로드할 수 없어요.");
       return false;
     }
-    const ok = await save(content);
+    const ok = await uploadAndSave(file);
     if (ok) {
-      toast.success("식단이 저장됐어요.");
+      toast.success("식단 이미지가 업로드됐어요.");
       setEditing(false);
     } else {
-      toast.error("저장 실패. 다시 시도해주세요.");
+      toast.error("업로드 실패. 다시 시도해주세요.");
     }
     return ok;
   };
@@ -60,13 +60,18 @@ export const MenuPage: React.FC<MenuPageProps> = ({ isDark, onToggleDark }) => {
 
       <div className="space-y-6 animate-in fade-in slide-in-from-right duration-500 pb-16">
         {editing ? (
-          <MenuEditor initial={data} onSave={handleSave} onCancel={() => setEditing(false)} />
+          <MenuEditor
+            initialUrl={imageUrl}
+            onSave={handleSave}
+            onCancel={() => setEditing(false)}
+            uploading={uploading}
+          />
         ) : loading ? (
           <MenuSkeleton />
         ) : error ? (
           <ErrorPanel message={error} onRetry={refetch} />
         ) : (
-          <MenuViewer text={data} />
+          <MenuViewer imageUrl={imageUrl} />
         )}
       </div>
     </>
@@ -75,20 +80,13 @@ export const MenuPage: React.FC<MenuPageProps> = ({ isDark, onToggleDark }) => {
 
 /** 메뉴 로딩 스켈레톤 */
 const MenuSkeleton: React.FC = () => (
-  <div className="space-y-4 animate-pulse">
-    {[0, 1, 2].map(i => (
-      <div
-        key={i}
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden"
-      >
-        <div className="h-12 bg-slate-100 dark:bg-slate-800/50" />
-        <div className="p-5 space-y-3">
-          <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-3/4" />
-          <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-1/2" />
-          <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-2/3" />
-        </div>
+  <div className="animate-pulse">
+    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden">
+      <div className="h-12 bg-slate-100 dark:bg-slate-800/50" />
+      <div className="p-3">
+        <div className="w-full h-64 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
       </div>
-    ))}
+    </div>
   </div>
 );
 
