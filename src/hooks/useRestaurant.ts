@@ -7,7 +7,7 @@ const NOT_CONFIGURED_MSG = "Supabase가 설정되지 않아 맛집 정보를 불
 /**
  * 특정 맛집의 상세 정보 + 후기 목록을 fetch.
  * 후기 등록은 `addReview(content)`.
- * 새 후기는 맨 밑(오래된 → 최신 순)에 붙이는 형태로 보여줌.
+ * 새 후기는 맨 위(최신 → 오래된 순)에 붙이는 형태로 보여줌.
  */
 export function useRestaurant(id: number | null) {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -36,7 +36,7 @@ export function useRestaurant(id: number | null) {
         .from("restaurant_reviews")
         .select("*")
         .eq("restaurant_id", id)
-        .order("created_at", { ascending: true }),
+        .order("created_at", { ascending: false }),
     ]);
 
     if (rErr) {
@@ -79,7 +79,7 @@ export function useRestaurant(id: number | null) {
         setError(error.message);
         return false;
       }
-      setReviews(prev => [...prev, data as Review]);
+      setReviews(prev => [data as Review, ...prev]);
       return true;
     },
     [id]

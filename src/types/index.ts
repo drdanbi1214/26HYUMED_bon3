@@ -63,6 +63,10 @@ export interface Review {
   restaurant_id: number;
   content: string;
   created_at: string;
+  // 레거시 후기용 식별자. 예: "(2022 2:6)" 또는 "(2026)".
+  // 사용자가 앱에서 직접 작성하는 후기는 항상 null이고, UI에서는 created_at(날짜)로 표시.
+  // tag가 있으면 UI에서 날짜 대신 tag를 표시.
+  tag: string | null;
 }
 
 // 카테고리 라벨 (UI 표시용)

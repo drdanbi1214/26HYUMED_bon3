@@ -125,7 +125,7 @@ export const RestaurantDetailPage: React.FC<RestaurantDetailPageProps> = ({
                   >
                     <div className="flex items-start gap-3">
                       <span className="shrink-0 text-[10px] font-black text-blue-500 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full mt-0.5">
-                        {formatDate(r.created_at)}
+                        {r.tag ?? formatDate(r.created_at)}
                       </span>
                       <p className="flex-1 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words">
                         {r.content}
