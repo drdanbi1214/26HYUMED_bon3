@@ -45,3 +45,29 @@ export interface ChatMessage {
   sender_id: string;
   created_at: string;
 }
+
+// 맛집 카테고리
+export type RestaurantCategory = "seoul" | "guri" | "outside";
+
+// Supabase restaurants 테이블 row
+export interface Restaurant {
+  id: number;
+  name: string;
+  category: RestaurantCategory;
+  created_at: string;
+}
+
+// Supabase restaurant_reviews 테이블 row
+export interface Review {
+  id: number;
+  restaurant_id: number;
+  content: string;
+  created_at: string;
+}
+
+// 카테고리 라벨 (UI 표시용)
+export const CATEGORY_LABEL: Record<RestaurantCategory, string> = {
+  seoul: "서울",
+  guri: "구리",
+  outside: "외부",
+};
