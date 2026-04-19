@@ -69,9 +69,9 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             />
             <button
               onClick={doSearch}
-              className="px-6 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold shadow-md active:scale-95 transition-all"
+              className="px-5 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xl shadow-md active:scale-95 transition-all"
             >
-              검색
+              🔍
             </button>
           </div>
           {history.length > 0 && (
