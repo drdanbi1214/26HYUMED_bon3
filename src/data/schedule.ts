@@ -16,6 +16,13 @@ export const DEPT_LINKS: Record<string, string> = {
   "영상의학과": "https://drive.google.com/drive/folders/19MeeZrE87824HZQWqd79uh3O49w4DIJW?usp=drive_link",
   "정형외과": "https://drive.google.com/drive/folders/1XoyDKAcK_FwV6giSm7gMXbNoRVuLcqDu?usp=drive_link",
   "진단검사의학": "https://drive.google.com/drive/folders/18cDJ6tI7Bu4lrGJcpWYCYuxmqJU-ytqP?usp=drive_link",
+  "호흡기내과(서울)": "https://drive.google.com/drive/folders/1foDNtkfmLUUZAKiR8EgyQYSQeRj1PQq9?usp=drive_link",
+  "내분비내과(서울)": "https://drive.google.com/drive/folders/1tMowvElVR2C3y7Ii6YVCbpI1BcEQa_9d?usp=drive_link",
+  "감염내과(구리)": "https://drive.google.com/drive/folders/1n933VdtOs8f--FEZIfdYWbfsfEobu2oK?usp=drive_link",
+  "류마티스내과(서울)": "https://drive.google.com/drive/folders/1S0WpJ-TryOVVN_Sm9VRq6JcYKkdB9iPK?usp=drive_link",
+  "혈액종양내과(서울)": "https://drive.google.com/drive/folders/16ls66Vg3AXNtF2_WZRpZKdxrJ_K5EMRS?usp=drive_link",
+  "신장내과(구리)": "https://drive.google.com/drive/folders/1jSF63L2miwqXwp1ikP2n3aOv-Sd9YOO0?usp=drive_link",
+  "심장내과(서울)": "https://drive.google.com/drive/folders/1Z4SIh_4aWn9Npiqi5AAmdYr58gMucImH?usp=drive_link",
 };
 
 // 실습 스케줄 원본 표.
