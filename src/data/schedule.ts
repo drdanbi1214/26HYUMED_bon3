@@ -28,6 +28,9 @@ export const DEPT_LINKS: Record<string, string> = {
   "소화기내과(구리)": "https://drive.google.com/drive/folders/14R5j9wKPkXKn5KNirjM4IOAFFbQjYk2-?usp=drive_link",
   "호흡기내과(구리)": "https://drive.google.com/drive/folders/1b6sgJ26Jmk21Uq69aJ9RKYp9WUs88cgM?usp=drive_link",
   "심장내과(구리)": "https://drive.google.com/drive/folders/1q-ReFdawxaC6CagZBEI8uoPcWkcKLjHN?usp=drive_link",
+  "류마티스내과(구리)": "https://drive.google.com/drive/folders/1ktFkvnB29uXvYURXytLc6gUd6vZfGzJj?usp=drive_link",
+  "혈액종양내과(구리)": "https://drive.google.com/drive/folders/1O9xs_kBZtYqNUSjBpXSjy3SjkgKfikwl?usp=drive_link",
+  "내분비내과(구리)": "https://drive.google.com/drive/folders/1aWvFriAOVgFzEsIUF_Cw2YmEWrTtIKtC?usp=drive_link",
 };
 
 // 실습 스케줄 원본 표.
