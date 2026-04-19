@@ -23,6 +23,11 @@ export const DEPT_LINKS: Record<string, string> = {
   "혈액종양내과(서울)": "https://drive.google.com/drive/folders/16ls66Vg3AXNtF2_WZRpZKdxrJ_K5EMRS?usp=drive_link",
   "신장내과(구리)": "https://drive.google.com/drive/folders/1jSF63L2miwqXwp1ikP2n3aOv-Sd9YOO0?usp=drive_link",
   "심장내과(서울)": "https://drive.google.com/drive/folders/1Z4SIh_4aWn9Npiqi5AAmdYr58gMucImH?usp=drive_link",
+  "감염내과(서울)": "https://drive.google.com/drive/folders/1Wtkcuvb6HYjm62SMbOvD3c1krZXEZMan?usp=drive_link",
+  "신장내과(서울)": "https://drive.google.com/drive/folders/1Ta1-5ucJ471afyBt6AAUFVTAaV0RY4Tq?usp=drive_link",
+  "소화기내과(구리)": "https://drive.google.com/drive/folders/14R5j9wKPkXKn5KNirjM4IOAFFbQjYk2-?usp=drive_link",
+  "호흡기내과(구리)": "https://drive.google.com/drive/folders/1b6sgJ26Jmk21Uq69aJ9RKYp9WUs88cgM?usp=drive_link",
+  "심장내과(구리)": "https://drive.google.com/drive/folders/1q-ReFdawxaC6CagZBEI8uoPcWkcKLjHN?usp=drive_link",
 };
 
 // 실습 스케줄 원본 표.
