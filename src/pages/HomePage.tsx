@@ -119,13 +119,15 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">👥</span>
             <span>구리 메이트</span>
           </button>
-          <button
-            onClick={() => navigate("/board")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3"
+          <a
+            href="https://hyu.u-folio.com/login"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
-            <span className="text-xl">💬</span>
-            <span>익명 게시판</span>
-          </button>
+            <span className="text-xl">✏️</span>
+            <span>유포폴</span>
+          </a>
           <button
             onClick={() => navigate("/menu")}
             className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3"
@@ -155,7 +157,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">🥄</span>
           </button>
           <a
-            href="https://map.naver.com/p/directions/14153577.8081099,4523550.9131848,%EA%B5%AC%EB%A6%AC%EC%97%AD%20%EA%B2%BD%EC%9D%98%EC%A4%91%EC%95%99%EC%84%A0,13543572,PLACE_POI/14152317.0592169,4523254.7645331,%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90%EA%B5%AC%EB%A6%AC%EB%B3%91%EC%9B%90,11686929,PLACE_POI/-/transit?c=14.00,0,0,0,dh"
+            href="https://map.naver.com/p/directions/14153577.8081099,4523550.9131848/%EA%B5%AC%EB%A6%AC%EC%97%AD%20%EA%B2%BD%EC%9D%98%EC%A4%91%EC%95%99%EC%84%A0,13543572,PLACE_POI/14152317.0592169,4523254.7645331/%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90%EA%B5%AC%EB%A6%AC%EB%B3%91%EC%9B%90,11686929,PLACE_POI/-/transit?c=14.00,0,0,0,dh"
             target="_blank"
             rel="noopener noreferrer"
             className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all text-center px-2"
@@ -167,6 +169,13 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             </span>
             <span className="text-xl">🚌</span>
           </a>
+          <button
+            onClick={() => navigate("/board")}
+            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3"
+          >
+            <span className="text-xl">💬</span>
+            <span>익명 게시판</span>
+          </button>
         </div>
 
       </div>
