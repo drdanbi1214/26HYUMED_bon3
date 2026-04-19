@@ -178,6 +178,9 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
           </button>
         </div>
 
+        <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2">
+          copyright© 이단비, ver2. 맛집인계, 유포폴 링크 추가, 인계장 링크 추가되었습니다
+        </p>
       </div>
     </>
   );
