@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
-import { MateFinder } from "@/components/mate/MateFinder";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { curWeek, dDay } from "@/utils/date";
 import { resolveSearchQuery } from "@/utils/buildSchedule";
@@ -22,8 +21,6 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [err, setErr] = useState("");
-  const [isMateFinderOpen, setIsMateFinderOpen] = useState(false);
-  const [mateInputs, setMateInputs] = useState<string[]>(["", "", "", ""]);
 
   const { history, push: pushHistory } = useSearchHistory();
   const cw = curWeek();
@@ -116,12 +113,8 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
         {/* 기능 버튼 그리드 */}
         <div className="grid grid-cols-2 gap-4">
           <button
-            onClick={() => setIsMateFinderOpen(!isMateFinderOpen)}
-            className={`py-5 rounded-3xl border font-bold transition-all shadow-md flex items-center justify-center gap-3 ${
-              isMateFinderOpen
-                ? "bg-blue-600 border-blue-700 text-white"
-                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200"
-            }`}
+            onClick={() => navigate("/mate")}
+            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3"
           >
             <span className="text-xl">👥</span>
             <span>구리 메이트</span>
@@ -176,11 +169,6 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
           </a>
         </div>
 
-        {isMateFinderOpen && (
-          <div className="animate-in fade-in slide-in-from-top-4 duration-300 mt-4">
-            <MateFinder inputs={mateInputs} onChange={setMateInputs} />
-          </div>
-        )}
       </div>
     </>
   );

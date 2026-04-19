@@ -8,6 +8,7 @@ import { WhoPage } from "@/pages/WhoPage";
 import { ProfPage } from "@/pages/ProfPage";
 import { RestaurantsPage } from "@/pages/RestaurantsPage";
 import { RestaurantDetailPage } from "@/pages/RestaurantDetailPage";
+import { MatePage } from "@/pages/MatePage";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
@@ -47,6 +48,7 @@ export const App: React.FC = () => {
               <Route path="/prof" element={<ProfPage {...commonProps} />} />
               <Route path="/restaurants" element={<RestaurantsPage {...commonProps} />} />
               <Route path="/restaurants/:id" element={<RestaurantDetailPage {...commonProps} />} />
+              <Route path="/mate" element={<MatePage {...commonProps} />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
