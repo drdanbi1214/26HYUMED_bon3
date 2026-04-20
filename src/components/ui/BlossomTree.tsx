@@ -2,16 +2,14 @@
 // CHERRY BLOSSOM FEATURE — remove this file when done
 // ============================================================
 import React, { useState } from "react";
-
-interface Wish { id: string; text: string; }
+import { useWishes } from "@/hooks/useWishes";
 
 export const BlossomTree: React.FC = () => {
+  const { wishes, loading, fetch: fetchWishes } = useWishes();
   const [showWishes, setShowWishes] = useState(false);
-  const [wishes, setWishes] = useState<Wish[]>([]);
 
   const handleTreeClick = () => {
-    const stored: Wish[] = JSON.parse(localStorage.getItem("sakura_wishes") || "[]");
-    setWishes([...stored].reverse());
+    fetchWishes();
     setShowWishes(true);
   };
 
@@ -89,7 +87,9 @@ export const BlossomTree: React.FC = () => {
               <button onClick={() => setShowWishes(false)} className="text-slate-400 text-xl font-light">✕</button>
             </div>
             <div className="overflow-y-auto px-6 py-4 space-y-2 flex-1">
-              {wishes.length === 0 ? (
+              {loading ? (
+                <p className="text-center text-slate-400 text-sm py-8">불러오는 중... 🌸</p>
+              ) : wishes.length === 0 ? (
                 <p className="text-center text-slate-400 text-sm py-8">
                   아직 소원이 없어요.<br />벚꽃을 잡아서 소원을 빌어봐요! 🌸
                 </p>

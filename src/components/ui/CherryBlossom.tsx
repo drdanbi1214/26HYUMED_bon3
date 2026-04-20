@@ -4,6 +4,7 @@
 // + useTheme.ts, revert App.tsx/Header.tsx/HomePage.tsx
 // ============================================================
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useWishes } from "@/hooks/useWishes";
 
 // 두 꽃잎 이미지: 투명 배경 PNG, 그냥 img 태그로 표시
 const PETAL_SRCS = ["/petal-flower.png", "/petal-leaf.png"];
@@ -54,9 +55,8 @@ interface LargePetal {
   src: string;
 }
 
-interface Wish { id: string; text: string; }
-
 export const CherryBlossom: React.FC = () => {
+  const { add: addWish } = useWishes();
   const [largePetals, setLargePetals] = useState<LargePetal[]>([]);
   const [wishModal, setWishModal] = useState(false);
   const [wishInput, setWishInput] = useState("");
@@ -101,14 +101,12 @@ export const CherryBlossom: React.FC = () => {
     setTimeout(spawnOne, 10000 + Math.random() * 8000);
   }, [wishModal, spawnOne]);
 
-  const saveWish = useCallback(() => {
+  const saveWish = useCallback(async () => {
     if (!wishInput.trim()) return;
-    const stored: Wish[] = JSON.parse(localStorage.getItem("sakura_wishes") || "[]");
-    stored.push({ id: Date.now().toString(), text: wishInput.trim() });
-    localStorage.setItem("sakura_wishes", JSON.stringify(stored));
+    await addWish(wishInput.trim());
     setWishSaved(true);
     setTimeout(() => setWishModal(false), 1800);
-  }, [wishInput]);
+  }, [wishInput, addWish]);
 
   return (
     <>
