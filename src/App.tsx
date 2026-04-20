@@ -9,52 +9,47 @@ import { ProfPage } from "@/pages/ProfPage";
 import { RestaurantsPage } from "@/pages/RestaurantsPage";
 import { RestaurantDetailPage } from "@/pages/RestaurantDetailPage";
 import { MatePage } from "@/pages/MatePage";
-import { useDarkMode } from "@/hooks/useDarkMode";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
+// CHERRY BLOSSOM FEATURE — remove next 3 imports when done
+import { useTheme } from "@/hooks/useTheme";
+import { BlossomProvider } from "@/context/BlossomContext";
+import { CherryBlossom } from "@/components/ui/CherryBlossom";
 
-/**
- * 최상위 앱 컴포넌트.
- *
- * Stage 2: BrowserRouter 기반 URL 라우팅.
- *   /                  → HomePage
- *   /schedule/:id      → SchedulePage (예: /schedule/C3)
- *   /board             → BoardPage
- *   /menu              → MenuPage
- *   /who               → WhoPage
- *   /prof              → ProfPage
- *   (그 외)            → /
- *
- * 다크모드는 여전히 상위에서 한 번만 관리해서 하위 페이지들이 공유한다.
- */
 export const App: React.FC = () => {
-  const { isDark, toggle: toggleDark } = useDarkMode();
+  // CHERRY BLOSSOM FEATURE: replaced useDarkMode with useTheme
+  // When removing: swap back to `const { isDark, toggle: toggleDark } = useDarkMode()`
+  const { isDark, isBlossom, toggle: toggleDark, toggleBlossom } = useTheme();
 
-  // 페이지 공통으로 쓰는 props (쓸 페이지만 골라서 사용)
   const commonProps = { isDark, onToggleDark: toggleDark };
 
   return (
-    <ToastProvider>
-      <BrowserRouter>
-        <div className="min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-[#0c1220]">
-          <div className="max-w-2xl w-full mx-auto px-5 pt-8 pb-8">
-            <SupabaseBanner />
-            <Routes>
-              <Route path="/" element={<HomePage {...commonProps} />} />
-              <Route path="/schedule/:id" element={<SchedulePage {...commonProps} />} />
-              <Route path="/board" element={<BoardPage {...commonProps} />} />
-              <Route path="/menu" element={<MenuPage {...commonProps} />} />
-              <Route path="/who" element={<WhoPage {...commonProps} />} />
-              <Route path="/prof" element={<ProfPage {...commonProps} />} />
-              <Route path="/restaurants" element={<RestaurantsPage {...commonProps} />} />
-              <Route path="/restaurants/:id" element={<RestaurantDetailPage {...commonProps} />} />
-              <Route path="/mate" element={<MatePage {...commonProps} />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+    // CHERRY BLOSSOM FEATURE — remove BlossomProvider wrapper when done
+    <BlossomProvider value={{ isBlossom, toggleBlossom }}>
+      <ToastProvider>
+        <BrowserRouter>
+          <div className="min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-[#0c1220]">
+            <div className="max-w-2xl w-full mx-auto px-5 pt-8 pb-8">
+                <SupabaseBanner />
+                <Routes>
+                  <Route path="/" element={<HomePage {...commonProps} />} />
+                  <Route path="/schedule/:id" element={<SchedulePage {...commonProps} />} />
+                  <Route path="/board" element={<BoardPage {...commonProps} />} />
+                  <Route path="/menu" element={<MenuPage {...commonProps} />} />
+                  <Route path="/who" element={<WhoPage {...commonProps} />} />
+                  <Route path="/prof" element={<ProfPage {...commonProps} />} />
+                  <Route path="/restaurants" element={<RestaurantsPage {...commonProps} />} />
+                  <Route path="/restaurants/:id" element={<RestaurantDetailPage {...commonProps} />} />
+                  <Route path="/mate" element={<MatePage {...commonProps} />} />
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </div>
+            {/* CHERRY BLOSSOM FEATURE — remove next line when done */}
+            {isBlossom && <CherryBlossom />}
           </div>
-        </div>
-      </BrowserRouter>
-    </ToastProvider>
+        </BrowserRouter>
+      </ToastProvider>
+    </BlossomProvider>
   );
 };
 

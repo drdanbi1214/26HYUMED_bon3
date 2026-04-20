@@ -1,5 +1,7 @@
 import React from "react";
 import { Icon } from "@/components/ui/Icon";
+// CHERRY BLOSSOM FEATURE — remove next line when done
+import { useBlossomContext } from "@/context/BlossomContext";
 
 interface HeaderProps {
   title: string;
@@ -19,8 +21,11 @@ export const Header: React.FC<HeaderProps> = ({
   isDark,
   onToggleDark,
 }) => {
+  // CHERRY BLOSSOM FEATURE — remove next line when done
+  const { isBlossom, toggleBlossom } = useBlossomContext();
+
   return (
-    <header className="flex items-center justify-between mb-6 shrink-0">
+    <header className="flex items-center justify-between mb-6 shrink-0 relative z-50">
       <div className="flex items-center gap-3">
         {onBack && (
           <button
@@ -33,13 +38,30 @@ export const Header: React.FC<HeaderProps> = ({
         )}
         <h1
           onClick={onTitleClick}
-          className="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 cursor-pointer select-none"
+          className={`text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-br cursor-pointer select-none ${
+            isBlossom
+              ? "from-pink-400 to-rose-500"
+              : "from-blue-500 to-indigo-600 dark:from-blue-400 dark:to-indigo-400"
+          }`}
         >
           {title}
         </h1>
       </div>
       <div className="flex items-center gap-2">
         {rightSlot}
+        {/* CHERRY BLOSSOM FEATURE — remove next button when done */}
+        <button
+          onClick={toggleBlossom}
+          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all ${
+            isBlossom
+              ? "border-pink-300 bg-pink-100 scale-105"
+              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+          }`}
+          aria-label="벚꽃 테마 토글"
+          title="🌸 봄 테마"
+        >
+          🌸
+        </button>
         <button
           onClick={onToggleDark}
           className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all"

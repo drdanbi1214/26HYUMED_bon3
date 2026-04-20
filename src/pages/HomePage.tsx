@@ -5,6 +5,9 @@ import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { curWeek, dDay } from "@/utils/date";
 import { resolveSearchQuery } from "@/utils/buildSchedule";
 import type { HistoryItem } from "@/types";
+// CHERRY BLOSSOM FEATURE — remove next 2 lines when done
+import { useBlossomContext } from "@/context/BlossomContext";
+import { BlossomTree } from "@/components/ui/BlossomTree";
 
 interface HomePageProps {
   isDark: boolean;
@@ -21,6 +24,8 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [err, setErr] = useState("");
+  // CHERRY BLOSSOM FEATURE — remove next line when done
+  const { isBlossom } = useBlossomContext();
 
   const { history, push: pushHistory } = useSearchHistory();
   const cw = curWeek();
@@ -56,7 +61,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
     <>
       <Header title="📋 2026 본3 실습" isDark={isDark} onToggleDark={onToggleDark} />
 
-      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-10">
+      <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-0">
         {/* 검색 영역 */}
         <div className="space-y-3 mb-6 shrink-0">
           <div className="flex gap-2">
@@ -144,14 +149,14 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
           </button>
           <button
             onClick={() => navigate("/prof")}
-            className="py-5 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 border border-indigo-400 font-black text-white shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
             <span>교수님 미리뵙기</span>
             <span className="text-xl">👨‍🏫</span>
           </button>
           <button
             onClick={() => navigate("/restaurants")}
-            className="py-5 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-500 border border-amber-400 font-black text-white shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
             <span>맛집인계</span>
             <span className="text-xl">🥄</span>
@@ -178,9 +183,12 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
           </button>
         </div>
 
-        <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2">
+        <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
           copyright© 이단비, ver2. 맛집인계, 유포폴 링크 추가, 인계장 링크 추가되었습니다
         </p>
+
+        {/* CHERRY BLOSSOM FEATURE — remove next block when done */}
+        {isBlossom && <BlossomTree />}
       </div>
     </>
   );
