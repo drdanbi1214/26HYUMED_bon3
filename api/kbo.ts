@@ -208,7 +208,18 @@ export default async function handler(req: any, res: any) {
     fetchGames(ystdStr, ystdDash),
   ]);
 
+  // 실제 KBO 응답 원본 필드 확인용 (점수 필드명 파악)
+  let rawSample: any = null;
+  try {
+    const r2 = await fetch(
+      `https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList?leId=1&srId=0&date=${ystdStr}`,
+      { headers: BROWSER }
+    );
+    const j2 = await r2.json();
+    rawSample = j2?.game?.[0] ?? j2;
+  } catch {}
+
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "no-store");
-  res.status(200).json({ today, yesterday, todayStr, ystdStr, debug });
+  res.status(200).json({ today, yesterday, todayStr, ystdStr, debug, rawSample });
 }
