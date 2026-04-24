@@ -25,12 +25,12 @@ function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
       : "-:-";
 
   return (
-    <div className="flex items-center justify-between text-base py-1 gap-1">
+    <div className="flex items-center justify-between text-lg py-1 gap-1">
       <span className="truncate font-bold text-slate-700 dark:text-slate-200 w-[38%] text-right">
         {g.away}
       </span>
       <span
-        className={`font-black tabular-nums text-base w-[24%] text-center shrink-0 ${
+        className={`font-black tabular-nums text-lg w-[24%] text-center shrink-0 ${
           live
             ? "text-green-500"
             : done
@@ -90,7 +90,7 @@ export const BaseballScoreCard: React.FC = () => {
             target="_blank"
             rel="noopener noreferrer"
             title="TVING 생중계"
-            className="text-base leading-none active:scale-90 transition-transform"
+            className="text-lg leading-none active:scale-90 transition-transform"
           >
             ⚾
           </a>
