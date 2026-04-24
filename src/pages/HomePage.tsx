@@ -75,7 +75,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
               onClick={doSearch}
               className="px-5 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xl shadow-md active:scale-95 transition-all"
             >
-              🔍
+              {isBaseball ? "⚾" : "🔍"}
             </button>
           </div>
           {history.length > 0 && (
@@ -124,7 +124,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             onClick={() => navigate("/mate")}
             className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3"
           >
-            <span className="text-xl">{isBaseball ? "🧢" : "👥"}</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "👥"}</span>
             <span>구리 메이트</span>
           </button>
           <a
@@ -141,7 +141,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3"
           >
             <span>병원식당메뉴</span>
-            <span className="text-xl">{isBaseball ? "🌭" : "🍱"}</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "🍱"}</span>
           </button>
           <button
             onClick={() => navigate("/who")}
@@ -155,7 +155,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
             <span>교수님 미리뵙기</span>
-            <span className="text-xl">{isBaseball ? "🏆" : "👨‍🏫"}</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "👨‍🏫"}</span>
           </button>
           <button
             onClick={() => navigate("/restaurants")}
@@ -175,13 +175,13 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
               <br />
               버스조회
             </span>
-            <span className="text-xl">{isBaseball ? "🏟️" : "🚌"}</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "🚌"}</span>
           </a>
           <button
             onClick={() => navigate("/board")}
             className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3"
           >
-            <span className="text-xl">{isBaseball ? "📢" : "💬"}</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "💬"}</span>
             <span>익명 게시판</span>
           </button>
         </div>
