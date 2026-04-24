@@ -107,13 +107,17 @@ export default async function handler(req: any, res: any) {
       const raw = j?.game ?? j?.d ?? j?.data ?? [];
       const list = Array.isArray(raw) ? raw : raw?.list ?? raw?.gameList ?? [];
       if (list.length > 0) {
+        // 첫 번째 경기 전체 필드를 debug에 기록해 점수 필드명 확인
+        debug.push(`kbo sample: ${JSON.stringify(list[0]).slice(0, 300)}`);
         return list.map((g: any) => ({
           id: g.G_ID ?? g.gameId ?? String(Math.random()),
           away: g.AWAY_NM ?? g.awayTeam ?? "?",
-          awayScore: g.AWAY_SCORE != null ? Number(g.AWAY_SCORE) : null,
+          awayScore: g.AWAY_SCORE != null ? Number(g.AWAY_SCORE) :
+                     g.AWAY_RESULT_SCORE != null ? Number(g.AWAY_RESULT_SCORE) : null,
           home: g.HOME_NM ?? g.homeTeam ?? "?",
-          homeScore: g.HOME_SCORE != null ? Number(g.HOME_SCORE) : null,
-          status: g.GAME_STATE_SC ?? g.status ?? "",
+          homeScore: g.HOME_SCORE != null ? Number(g.HOME_SCORE) :
+                     g.HOME_RESULT_SCORE != null ? Number(g.HOME_RESULT_SCORE) : null,
+          status: g.GAME_STATE_SC ?? g.GAME_SC_NM ?? g.status ?? "",
           time: g.G_TM ?? g.startTime ?? "",
         }));
       }

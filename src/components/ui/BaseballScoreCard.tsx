@@ -25,12 +25,12 @@ function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
       : "-:-";
 
   return (
-    <div className="flex items-center justify-between text-[11px] py-0.5 gap-1">
-      <span className="truncate font-semibold text-slate-700 dark:text-slate-200 w-[38%] text-right">
+    <div className="flex items-center justify-between text-sm py-1 gap-1">
+      <span className="truncate font-bold text-slate-700 dark:text-slate-200 w-[38%] text-right">
         {g.away}
       </span>
       <span
-        className={`font-black tabular-nums text-xs w-[24%] text-center shrink-0 ${
+        className={`font-black tabular-nums text-sm w-[24%] text-center shrink-0 ${
           live
             ? "text-green-500"
             : done
@@ -40,7 +40,7 @@ function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
       >
         {scoreText}
       </span>
-      <span className="truncate font-semibold text-slate-700 dark:text-slate-200 w-[38%]">
+      <span className="truncate font-bold text-slate-700 dark:text-slate-200 w-[38%]">
         {g.home}
       </span>
     </div>
@@ -60,11 +60,11 @@ function Column({
 }) {
   return (
     <div className="flex-1 min-w-0">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5 text-center">
+      <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-2 text-center">
         {title}
       </p>
       {games.length === 0 ? (
-        <p className="text-[10px] text-slate-400 text-center py-1">{emptyMsg}</p>
+        <p className="text-xs text-slate-400 text-center py-1">{emptyMsg}</p>
       ) : (
         <div className="space-y-0.5">
           {games.map((g) => (
@@ -84,7 +84,7 @@ export const BaseballScoreCard: React.FC = () => {
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-black text-slate-600 dark:text-slate-300">오늘의 야구</span>
+          <span className="text-sm font-black text-slate-600 dark:text-slate-300">오늘의 야구</span>
           <a
             href="https://www.tving.com/sports/kbo"
             target="_blank"
