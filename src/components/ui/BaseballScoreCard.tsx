@@ -17,28 +17,29 @@ function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
   const done = isDone(g.status);
   const scheduled = isScheduled(g.status);
 
-  const scoreText =
-    scheduled
-      ? (showTime ? g.time || "-" : "-:-")
-      : `${g.awayScore ?? "-"}:${g.homeScore ?? "-"}`;
+  const awayWon = done && g.awayScore !== null && g.homeScore !== null && g.awayScore > g.homeScore;
+  const homeWon = done && g.awayScore !== null && g.homeScore !== null && g.homeScore > g.awayScore;
+
+  const awayScore = scheduled ? null : g.awayScore;
+  const homeScore = scheduled ? null : g.homeScore;
 
   return (
     <div className="flex items-center justify-between text-lg py-1 gap-1">
-      <span className="truncate font-bold text-slate-700 dark:text-slate-200 w-[38%] text-right">
+      <span className={`truncate font-bold w-[28%] text-right ${awayWon ? "text-red-500" : "text-slate-700 dark:text-slate-200"}`}>
         {g.away}
       </span>
-      <span
-        className={`font-black tabular-nums text-lg w-[24%] text-center shrink-0 ${
-          live
-            ? "text-green-500"
-            : done
-            ? "text-slate-500 dark:text-slate-400"
-            : "text-blue-500"
-        }`}
-      >
-        {scoreText}
-      </span>
-      <span className="truncate font-bold text-slate-700 dark:text-slate-200 w-[38%]">
+      {scheduled ? (
+        <span className="font-black tabular-nums text-lg w-[44%] text-center shrink-0 text-blue-500">
+          {showTime ? g.time || "-" : "-:-"}
+        </span>
+      ) : (
+        <span className={`font-black tabular-nums text-lg w-[44%] text-center shrink-0 flex justify-center gap-0.5 ${live ? "text-green-500" : ""}`}>
+          <span className={awayWon ? "text-red-500" : done ? "text-slate-500 dark:text-slate-400" : ""}>{awayScore ?? "-"}</span>
+          <span className={done ? "text-slate-400" : ""}>{":"}</span>
+          <span className={homeWon ? "text-red-500" : done ? "text-slate-500 dark:text-slate-400" : ""}>{homeScore ?? "-"}</span>
+        </span>
+      )}
+      <span className={`truncate font-bold w-[28%] ${homeWon ? "text-red-500" : "text-slate-700 dark:text-slate-200"}`}>
         {g.home}
       </span>
     </div>
