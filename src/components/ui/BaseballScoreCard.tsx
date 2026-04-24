@@ -3,13 +3,13 @@ import React from "react";
 import { useKboScores, type KboGame } from "@/hooks/useKboScores";
 
 function isLive(status: string) {
-  return status.includes("회") || status.includes("진행") || status.includes("초") || status.includes("말");
+  return status === "2" || status.includes("회") || status.includes("진행") || status.includes("초") || status.includes("말");
 }
 function isDone(status: string) {
-  return ["종료", "취소", "우천취소"].includes(status);
+  return status === "3" || ["종료", "취소", "우천취소"].includes(status);
 }
 function isScheduled(status: string) {
-  return !isLive(status) && !isDone(status);
+  return status === "1" || (!isLive(status) && !isDone(status));
 }
 
 function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
@@ -18,11 +18,9 @@ function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
   const scheduled = isScheduled(g.status);
 
   const scoreText =
-    g.awayScore !== null && g.homeScore !== null
-      ? `${g.awayScore}:${g.homeScore}`
-      : showTime
-      ? g.time || g.status
-      : "-:-";
+    scheduled
+      ? (showTime ? g.time || "-" : "-:-")
+      : `${g.awayScore ?? "-"}:${g.homeScore ?? "-"}`;
 
   return (
     <div className="flex items-center justify-between text-lg py-1 gap-1">
