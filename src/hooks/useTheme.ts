@@ -14,8 +14,9 @@ export function useTheme() {
   const isBlossom = pref === "blossom";
 
   useEffect(() => {
+    const baseball = localStorage.getItem("baseball_mode") === "true";
     document.documentElement.classList.toggle("dark", isDark);
-    document.documentElement.classList.toggle("blossom", isBlossom);
+    document.documentElement.classList.toggle("blossom", isBlossom && !baseball);
   }, [isDark, isBlossom]);
 
   return {

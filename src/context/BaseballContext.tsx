@@ -18,10 +18,21 @@ export const BaseballProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     () => localStorage.getItem("baseball_mode") === "true"
   );
 
+  // 야구모드 ↔ blossom 클래스 동기화
+  useEffect(() => {
+    if (isBaseball) {
+      document.documentElement.classList.remove("blossom");
+    } else {
+      const pref = localStorage.getItem("theme_pref");
+      document.documentElement.classList.toggle("blossom", pref === "blossom");
+    }
+  }, [isBaseball]);
+
   const toggleBaseball = () =>
     setIsBaseball((prev) => {
-      localStorage.setItem("baseball_mode", String(!prev));
-      return !prev;
+      const next = !prev;
+      localStorage.setItem("baseball_mode", String(next));
+      return next;
     });
 
   return (
