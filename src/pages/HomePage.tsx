@@ -5,11 +5,8 @@ import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { curWeek, dDay } from "@/utils/date";
 import { resolveSearchQuery } from "@/utils/buildSchedule";
 import type { HistoryItem } from "@/types";
-// CHERRY BLOSSOM FEATURE — remove next 2 lines when done
 import { useBlossomContext } from "@/context/BlossomContext";
 import { BlossomTree } from "@/components/ui/BlossomTree";
-// BASEBALL FEATURE
-import { useBaseballContext } from "@/context/BaseballContext";
 import { BaseballScoreCard } from "@/components/ui/BaseballScoreCard";
 
 interface HomePageProps {
@@ -27,10 +24,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [err, setErr] = useState("");
-  // CHERRY BLOSSOM FEATURE — remove next line when done
-  const { isBlossom } = useBlossomContext();
-  // BASEBALL FEATURE
-  const { isBaseball } = useBaseballContext();
+  const { isBlossom, isBaseball } = useBlossomContext();
 
   const { history, push: pushHistory } = useSearchHistory();
   const cw = curWeek();

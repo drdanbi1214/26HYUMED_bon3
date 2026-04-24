@@ -11,23 +11,16 @@ import { RestaurantDetailPage } from "@/pages/RestaurantDetailPage";
 import { MatePage } from "@/pages/MatePage";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
-// CHERRY BLOSSOM FEATURE — remove next 3 imports when done
 import { useTheme } from "@/hooks/useTheme";
 import { BlossomProvider } from "@/context/BlossomContext";
 import { CherryBlossom } from "@/components/ui/CherryBlossom";
-// BASEBALL FEATURE
-import { BaseballProvider } from "@/context/BaseballContext";
-import { useBaseballContext } from "@/context/BaseballContext";
 
-// Provider 안에서 context 접근하기 위해 내부 컴포넌트로 분리
-const AppInner: React.FC = () => {
-  const { isDark, isBlossom, toggle: toggleDark, toggleBlossom } = useTheme();
-  const { isBaseball } = useBaseballContext();
-
+export const App: React.FC = () => {
+  const { isDark, isBlossom, isBaseball, toggle: toggleDark, toggleBlossom, toggleBaseball } = useTheme();
   const commonProps = { isDark, onToggleDark: toggleDark };
 
   return (
-    <BlossomProvider value={{ isBlossom, toggleBlossom }}>
+    <BlossomProvider value={{ isBlossom, toggleBlossom, isBaseball, toggleBaseball }}>
       <ToastProvider>
         <BrowserRouter>
           <div className="min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-[#0c1220]">
@@ -46,19 +39,12 @@ const AppInner: React.FC = () => {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </div>
-            {/* 야구모드일 때 벚꽃 숨김 */}
-            {isBlossom && !isBaseball && <CherryBlossom />}
+            {isBlossom && <CherryBlossom />}
           </div>
         </BrowserRouter>
       </ToastProvider>
     </BlossomProvider>
   );
 };
-
-export const App: React.FC = () => (
-  <BaseballProvider>
-    <AppInner />
-  </BaseballProvider>
-);
 
 export default App;

@@ -1,17 +1,17 @@
-// ============================================================
-// CHERRY BLOSSOM FEATURE — remove when done:
-// Delete this file and remove BlossomProvider from App.tsx
-// ============================================================
 import React, { createContext, useContext } from "react";
 
 interface BlossomContextValue {
   isBlossom: boolean;
   toggleBlossom: () => void;
+  isBaseball: boolean;
+  toggleBaseball: () => void;
 }
 
 const BlossomContext = createContext<BlossomContextValue>({
   isBlossom: false,
   toggleBlossom: () => {},
+  isBaseball: false,
+  toggleBaseball: () => {},
 });
 
 export const useBlossomContext = () => useContext(BlossomContext);

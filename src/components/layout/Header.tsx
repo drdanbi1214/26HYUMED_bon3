@@ -1,9 +1,6 @@
 import React from "react";
 import { Icon } from "@/components/ui/Icon";
-// CHERRY BLOSSOM FEATURE — remove next line when done
 import { useBlossomContext } from "@/context/BlossomContext";
-// BASEBALL FEATURE
-import { useBaseballContext } from "@/context/BaseballContext";
 
 interface HeaderProps {
   title: string;
@@ -23,10 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   isDark,
   onToggleDark,
 }) => {
-  // CHERRY BLOSSOM FEATURE — remove next line when done
-  const { isBlossom, toggleBlossom } = useBlossomContext();
-  // BASEBALL FEATURE
-  const { isBaseball, toggleBaseball } = useBaseballContext();
+  const { isBlossom, toggleBlossom, isBaseball, toggleBaseball } = useBlossomContext();
 
   return (
     <header className="flex items-center justify-between mb-6 shrink-0 relative z-50">

@@ -1,28 +1,27 @@
-// ============================================================
-// CHERRY BLOSSOM FEATURE — remove when done:
-// Delete useTheme.ts, restore useDarkMode usage in App.tsx
-// ============================================================
 import { useEffect } from "react";
 import { useLocalStorageString } from "@/hooks/useLocalStorage";
 
-export type ThemePref = "light" | "dark" | "blossom";
+// 세 가지 모드는 서로 배타적 (하나만 선택 가능)
+export type ThemePref = "light" | "dark" | "blossom" | "baseball";
 
 export function useTheme() {
   const [pref, setPref] = useLocalStorageString("theme_pref", "light");
 
   const isDark = pref === "dark";
   const isBlossom = pref === "blossom";
+  const isBaseball = pref === "baseball";
 
   useEffect(() => {
-    const baseball = localStorage.getItem("baseball_mode") === "true";
     document.documentElement.classList.toggle("dark", isDark);
-    document.documentElement.classList.toggle("blossom", isBlossom && !baseball);
+    document.documentElement.classList.toggle("blossom", isBlossom);
   }, [isDark, isBlossom]);
 
   return {
     isDark,
     isBlossom,
-    toggle: () => setPref(isDark ? "light" : "dark"),
-    toggleBlossom: () => setPref(isBlossom ? "light" : "blossom"),
+    isBaseball,
+    toggle:         () => setPref(isDark      ? "light"    : "dark"),
+    toggleBlossom:  () => setPref(isBlossom   ? "light"    : "blossom"),
+    toggleBaseball: () => setPref(isBaseball  ? "light"    : "baseball"),
   };
 }
