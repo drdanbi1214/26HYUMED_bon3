@@ -23,23 +23,35 @@ function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
   const awayScore = scheduled ? null : g.awayScore;
   const homeScore = scheduled ? null : g.homeScore;
 
+  const RED = "#ef4444";
+  const GRAY = "#94a3b8";
+  const BLUE = "#3b82f6";
+  const GREEN = "#22c55e";
+  const DEFAULT = "";
+
   return (
     <div className="flex items-center justify-between text-lg py-1 gap-1">
-      <span className={`truncate font-bold w-[28%] text-right ${awayWon ? "text-red-500" : "text-slate-700 dark:text-slate-200"}`}>
+      <span
+        className="truncate font-bold w-[28%] text-right text-slate-700 dark:text-slate-200"
+        style={awayWon ? { color: RED } : undefined}
+      >
         {g.away}
       </span>
       {scheduled ? (
-        <span className="font-black tabular-nums text-lg w-[44%] text-center shrink-0 text-blue-500">
+        <span className="font-black tabular-nums text-lg w-[44%] text-center shrink-0" style={{ color: BLUE }}>
           {showTime ? g.time || "-" : "-:-"}
         </span>
       ) : (
-        <span className={`font-black tabular-nums text-lg w-[44%] text-center shrink-0 flex justify-center gap-0.5 ${live ? "text-green-500" : ""}`}>
-          <span className={awayWon ? "text-red-500" : done ? "text-slate-500 dark:text-slate-400" : ""}>{awayScore ?? "-"}</span>
-          <span className={done ? "text-slate-400" : ""}>{":"}</span>
-          <span className={homeWon ? "text-red-500" : done ? "text-slate-500 dark:text-slate-400" : ""}>{homeScore ?? "-"}</span>
+        <span className="font-black tabular-nums text-lg w-[44%] text-center shrink-0 flex justify-center gap-0.5">
+          <span style={{ color: live ? GREEN : awayWon ? RED : GRAY }}>{awayScore ?? "-"}</span>
+          <span style={{ color: GRAY }}>:</span>
+          <span style={{ color: live ? GREEN : homeWon ? RED : GRAY }}>{homeScore ?? "-"}</span>
         </span>
       )}
-      <span className={`truncate font-bold w-[28%] ${homeWon ? "text-red-500" : "text-slate-700 dark:text-slate-200"}`}>
+      <span
+        className="truncate font-bold w-[28%] text-slate-700 dark:text-slate-200"
+        style={homeWon ? { color: RED } : undefined}
+      >
         {g.home}
       </span>
     </div>
