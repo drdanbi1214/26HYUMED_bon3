@@ -181,6 +181,19 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">💬</span>
             <span>익명 게시판</span>
           </button>
+          <a
+            href="https://www.tving.com/sports/kbo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all text-center px-2"
+          >
+            <span className="text-[13px] leading-tight">
+              오늘의 야구
+              <br />
+              <span className="text-red-500 text-[11px]">🔴 TVING 생중계</span>
+            </span>
+            <span className="text-xl">⚾</span>
+          </a>
         </div>
 
         <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
