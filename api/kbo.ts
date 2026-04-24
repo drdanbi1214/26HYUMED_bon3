@@ -1,7 +1,12 @@
-// Vercel serverless function — KBO 점수 프록시
+// Vercel serverless function — KBO 어제+오늘 점수 프록시
 export default async function handler(req: any, res: any) {
   const kst = new Date(Date.now() + 9 * 3600 * 1000);
-  const date = kst.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+
+  const fmt = (d: Date) => d.toISOString().slice(0, 10).replace(/-/g, "");
+  const todayStr = fmt(kst);
+  const ystd = new Date(kst);
+  ystd.setDate(ystd.getDate() - 1);
+  const ystdStr = fmt(ystd);
 
   const HEADERS = {
     "User-Agent":
@@ -12,51 +17,42 @@ export default async function handler(req: any, res: any) {
     Origin: "https://sports.naver.com",
   };
 
-  // 여러 엔드포인트 순서대로 시도
-  const URLS = [
-    `https://api-gw.sports.naver.com/schedule/games?category=kbo&date=${date}&home=&away=&size=20`,
-    `https://api-gw.sports.naver.com/schedule/games?category=kbo&date=${date}`,
-    `https://sports.naver.com/api/kbo/schedule?date=${date}`,
-  ];
+  async function fetchGames(date: string) {
+    const urls = [
+      `https://api-gw.sports.naver.com/schedule/games?category=kbo&date=${date}&home=&away=&size=20`,
+      `https://api-gw.sports.naver.com/schedule/games?category=kbo&date=${date}`,
+    ];
+    for (const url of urls) {
+      try {
+        const resp = await fetch(url, { headers: HEADERS });
+        if (!resp.ok) continue;
+        const json = await resp.json();
+        const raw: any[] =
+          json?.result?.games ?? json?.games ?? json?.data?.games ?? [];
+        if (raw.length > 0 || json?.result !== undefined) {
+          return raw.map((g: any) => ({
+            id: g.gameId ?? g.gameCode ?? String(Math.random()),
+            away: g.awayTeamName ?? g.awayTeam ?? "?",
+            awayScore: g.awayTeamScore ?? g.awayScore ?? null,
+            home: g.homeTeamName ?? g.homeTeam ?? "?",
+            homeScore: g.homeTeamScore ?? g.homeScore ?? null,
+            status: g.statusInfo ?? g.gameStatusInfo ?? g.status ?? "",
+            time: g.gameTime ?? g.startTime ?? g.time ?? "",
+          }));
+        }
+      } catch {
+        continue;
+      }
+    }
+    return [];
+  }
+
+  const [today, yesterday] = await Promise.all([
+    fetchGames(todayStr),
+    fetchGames(ystdStr),
+  ]);
 
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "no-store");
-
-  for (const url of URLS) {
-    try {
-      const resp = await fetch(url, { headers: HEADERS });
-      if (!resp.ok) continue;
-
-      const json = await resp.json();
-
-      // 응답 구조 유연하게 처리
-      const raw: any[] =
-        json?.result?.games ??
-        json?.games ??
-        json?.data?.games ??
-        json?.list ??
-        [];
-
-      const games = raw.map((g: any) => ({
-        id: g.gameId ?? g.gameCode ?? String(Math.random()),
-        away: g.awayTeamName ?? g.awayTeam ?? g.away ?? "?",
-        awayScore: g.awayTeamScore ?? g.awayScore ?? null,
-        home: g.homeTeamName ?? g.homeTeam ?? g.home ?? "?",
-        homeScore: g.homeTeamScore ?? g.homeScore ?? null,
-        status: g.statusInfo ?? g.gameStatusInfo ?? g.status ?? "",
-        time: g.gameTime ?? g.startTime ?? g.time ?? "",
-      }));
-
-      return res.status(200).json({ games, date, source: url });
-    } catch {
-      continue;
-    }
-  }
-
-  // 모든 엔드포인트 실패 시 목업 (UI 테스트용)
-  return res.status(200).json({
-    games: [],
-    date,
-    error: "KBO 데이터를 가져올 수 없어요. 경기가 없거나 API 점검 중일 수 있어요.",
-  });
+  res.status(200).json({ today, yesterday, todayStr, ystdStr });
 }

@@ -1,37 +1,96 @@
 // BASEBALL FEATURE
 import React from "react";
-import { useKboScores } from "@/hooks/useKboScores";
+import { useKboScores, type KboGame } from "@/hooks/useKboScores";
 
-const STATUS_COLOR: Record<string, string> = {
-  종료: "text-slate-400",
-  취소: "text-red-400",
-  우천취소: "text-red-400",
-};
+function isLive(status: string) {
+  return status.includes("회") || status.includes("진행") || status.includes("초") || status.includes("말");
+}
+function isDone(status: string) {
+  return ["종료", "취소", "우천취소"].includes(status);
+}
+function isScheduled(status: string) {
+  return !isLive(status) && !isDone(status);
+}
 
-function statusColor(s: string) {
-  if (STATUS_COLOR[s]) return STATUS_COLOR[s];
-  if (s.includes("진행") || s.includes("회") || s.includes("말") || s.includes("초"))
-    return "text-green-500 font-bold";
-  return "text-blue-500"; // 예정
+function GameRow({ g, showTime }: { g: KboGame; showTime?: boolean }) {
+  const live = isLive(g.status);
+  const done = isDone(g.status);
+  const scheduled = isScheduled(g.status);
+
+  const scoreText =
+    g.awayScore !== null && g.homeScore !== null
+      ? `${g.awayScore}:${g.homeScore}`
+      : showTime
+      ? g.time || g.status
+      : "-:-";
+
+  return (
+    <div className="flex items-center justify-between text-[11px] py-0.5 gap-1">
+      <span className="truncate font-semibold text-slate-700 dark:text-slate-200 w-[38%] text-right">
+        {g.away}
+      </span>
+      <span
+        className={`font-black tabular-nums text-xs w-[24%] text-center shrink-0 ${
+          live
+            ? "text-green-500"
+            : done
+            ? "text-slate-500 dark:text-slate-400"
+            : "text-blue-500"
+        }`}
+      >
+        {scoreText}
+      </span>
+      <span className="truncate font-semibold text-slate-700 dark:text-slate-200 w-[38%]">
+        {g.home}
+      </span>
+    </div>
+  );
+}
+
+function Column({
+  title,
+  games,
+  emptyMsg,
+  showTime,
+}: {
+  title: string;
+  games: KboGame[];
+  emptyMsg: string;
+  showTime?: boolean;
+}) {
+  return (
+    <div className="flex-1 min-w-0">
+      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1.5 text-center">
+        {title}
+      </p>
+      {games.length === 0 ? (
+        <p className="text-[10px] text-slate-400 text-center py-1">{emptyMsg}</p>
+      ) : (
+        <div className="space-y-0.5">
+          {games.map((g) => (
+            <GameRow key={g.id} g={g} showTime={showTime} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export const BaseballScoreCard: React.FC = () => {
-  const { games, loading, error, refresh } = useKboScores(true);
+  const { data, loading, error, refresh } = useKboScores(true);
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-slate-800/30 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-sm">
+    <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-slate-800/30 border border-slate-100 dark:border-slate-800 rounded-3xl p-4 shadow-sm">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wide">
-            Today's KBO
-          </span>
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs font-black text-slate-600 dark:text-slate-300">오늘의 야구</span>
           <a
             href="https://www.tving.com/sports/kbo"
             target="_blank"
             rel="noopener noreferrer"
-            title="TVING 야구 생중계"
-            className="text-lg leading-none active:scale-90 transition-transform"
+            title="TVING 생중계"
+            className="text-base leading-none active:scale-90 transition-transform"
           >
             ⚾
           </a>
@@ -39,57 +98,32 @@ export const BaseballScoreCard: React.FC = () => {
         <button
           onClick={refresh}
           disabled={loading}
-          className="text-slate-400 text-base px-2 py-1 rounded-xl active:scale-90 transition-all disabled:opacity-40"
+          className="text-slate-400 text-sm px-2 py-0.5 rounded-lg active:scale-90 transition-all disabled:opacity-40"
           title="새로고침"
         >
           {loading ? "⏳" : "↻"}
         </button>
       </div>
 
-      {/* 경기 목록 */}
       {error ? (
         <p className="text-xs text-red-400 text-center py-2">{error}</p>
       ) : loading ? (
         <p className="text-xs text-slate-400 text-center py-2">불러오는 중...</p>
-      ) : games.length === 0 ? (
-        <p className="text-xs text-slate-400 text-center py-2">오늘 KBO 경기가 없어요 🏟️</p>
       ) : (
-        <div className="space-y-1.5">
-          {games.map((g) => {
-            const inProgress = !["종료", "취소", "우천취소"].includes(g.status) &&
-              !g.status.match(/^\d{2}:\d{2}$/);
-            const scheduled = g.status.match(/^\d{2}:\d{2}$/);
-            return (
-              <div
-                key={g.id}
-                className="flex items-center justify-between text-sm"
-              >
-                {/* 원정팀 */}
-                <span className="w-16 text-right font-bold text-slate-700 dark:text-slate-200 truncate">
-                  {g.away}
-                </span>
-
-                {/* 점수 or 시간 */}
-                <span className="flex-1 text-center font-black text-slate-800 dark:text-slate-100 tabular-nums">
-                  {scheduled
-                    ? g.status
-                    : g.awayScore !== null && g.homeScore !== null
-                    ? `${g.awayScore} : ${g.homeScore}`
-                    : "- : -"}
-                </span>
-
-                {/* 홈팀 */}
-                <span className="w-16 font-bold text-slate-700 dark:text-slate-200 truncate">
-                  {g.home}
-                </span>
-
-                {/* 상태 */}
-                <span className={`w-14 text-right text-[10px] ${statusColor(g.status)}`}>
-                  {inProgress ? g.status : scheduled ? "예정" : g.status}
-                </span>
-              </div>
-            );
-          })}
+        <div className="flex gap-3">
+          <Column
+            title="어제 결과"
+            games={data.yesterday}
+            emptyMsg="경기 없음"
+          />
+          {/* 구분선 */}
+          <div className="w-px bg-slate-200 dark:bg-slate-700 shrink-0" />
+          <Column
+            title="오늘 경기"
+            games={data.today}
+            emptyMsg="경기 없음"
+            showTime
+          />
         </div>
       )}
     </div>

@@ -10,8 +10,13 @@ export interface KboGame {
   time: string;
 }
 
+export interface KboData {
+  today: KboGame[];
+  yesterday: KboGame[];
+}
+
 export function useKboScores(enabled: boolean) {
-  const [games, setGames] = useState<KboGame[]>([]);
+  const [data, setData] = useState<KboData>({ today: [], yesterday: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,8 +28,8 @@ export function useKboScores(enabled: boolean) {
       const res = await fetch("/api/kbo");
       if (!res.ok) throw new Error(`${res.status}`);
       const json = await res.json();
-      setGames(json.games ?? []);
-    } catch (e) {
+      setData({ today: json.today ?? [], yesterday: json.yesterday ?? [] });
+    } catch {
       setError("점수를 불러올 수 없어요.");
     } finally {
       setLoading(false);
@@ -35,5 +40,5 @@ export function useKboScores(enabled: boolean) {
     if (enabled) refresh();
   }, [enabled, refresh]);
 
-  return { games, loading, error, refresh };
+  return { data, loading, error, refresh };
 }
