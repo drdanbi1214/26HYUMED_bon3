@@ -97,14 +97,14 @@ export default async function handler(req: any, res: any) {
       Accept: "application/json, text/javascript, */*; q=0.01",
       "X-Requested-With": "XMLHttpRequest",
     };
-    // 날짜 형식 두 가지 모두 시도
-    const dates = [dateDash, dateDash.replace(/-/g, "")];
+    // YYYYMMDD 형식만 작동 (대시 형식은 "날짜 변환 불가" 오류)
+    const dates = [dateDash.replace(/-/g, ""), dateDash];
     for (const date of dates) {
       const url = `https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList?leId=1&srId=0&date=${date}`;
       const j = await tryUrl(url, { headers: kboHeaders });
       if (!j || typeof j !== "object") continue;
-      // 응답 구조: { d: [...] } 또는 { d: { list: [...] } }
-      const raw = j?.d ?? j?.data ?? [];
+      // 응답 구조: { game: [...] } — YYYYMMDD 형식에서 확인됨
+      const raw = j?.game ?? j?.d ?? j?.data ?? [];
       const list = Array.isArray(raw) ? raw : raw?.list ?? raw?.gameList ?? [];
       if (list.length > 0) {
         return list.map((g: any) => ({
