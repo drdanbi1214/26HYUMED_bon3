@@ -103,7 +103,7 @@ export const BaseballScoreCard: React.FC = () => {
             title="TVING 생중계"
             className="text-lg leading-none active:scale-90 transition-transform"
           >
-            ⚾
+            📺
           </a>
         </div>
         <button
