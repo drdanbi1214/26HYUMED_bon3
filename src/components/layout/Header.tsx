@@ -2,6 +2,8 @@ import React from "react";
 import { Icon } from "@/components/ui/Icon";
 // CHERRY BLOSSOM FEATURE — remove next line when done
 import { useBlossomContext } from "@/context/BlossomContext";
+// BASEBALL FEATURE
+import { useBaseballContext } from "@/context/BaseballContext";
 
 interface HeaderProps {
   title: string;
@@ -23,6 +25,8 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   // CHERRY BLOSSOM FEATURE — remove next line when done
   const { isBlossom, toggleBlossom } = useBlossomContext();
+  // BASEBALL FEATURE
+  const { isBaseball, toggleBaseball } = useBaseballContext();
 
   return (
     <header className="flex items-center justify-between mb-6 shrink-0 relative z-50">
@@ -49,6 +53,19 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
       <div className="flex items-center gap-2">
         {rightSlot}
+        {/* BASEBALL FEATURE */}
+        <button
+          onClick={toggleBaseball}
+          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all ${
+            isBaseball
+              ? "border-blue-400 bg-blue-100 dark:bg-blue-900/40 scale-105"
+              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+          }`}
+          aria-label="야구 모드 토글"
+          title="⚾ 야구 모드"
+        >
+          ⚾
+        </button>
         {/* CHERRY BLOSSOM FEATURE — remove next button when done */}
         <button
           onClick={toggleBlossom}

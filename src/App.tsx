@@ -15,6 +15,8 @@ import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
 import { useTheme } from "@/hooks/useTheme";
 import { BlossomProvider } from "@/context/BlossomContext";
 import { CherryBlossom } from "@/components/ui/CherryBlossom";
+// BASEBALL FEATURE
+import { BaseballProvider } from "@/context/BaseballContext";
 
 export const App: React.FC = () => {
   // CHERRY BLOSSOM FEATURE: replaced useDarkMode with useTheme
@@ -25,6 +27,7 @@ export const App: React.FC = () => {
 
   return (
     // CHERRY BLOSSOM FEATURE — remove BlossomProvider wrapper when done
+    <BaseballProvider>
     <BlossomProvider value={{ isBlossom, toggleBlossom }}>
       <ToastProvider>
         <BrowserRouter>
@@ -50,6 +53,7 @@ export const App: React.FC = () => {
         </BrowserRouter>
       </ToastProvider>
     </BlossomProvider>
+    </BaseballProvider>
   );
 };
 

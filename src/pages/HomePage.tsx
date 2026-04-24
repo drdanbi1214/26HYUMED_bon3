@@ -8,6 +8,9 @@ import type { HistoryItem } from "@/types";
 // CHERRY BLOSSOM FEATURE — remove next 2 lines when done
 import { useBlossomContext } from "@/context/BlossomContext";
 import { BlossomTree } from "@/components/ui/BlossomTree";
+// BASEBALL FEATURE
+import { useBaseballContext } from "@/context/BaseballContext";
+import { BaseballScoreCard } from "@/components/ui/BaseballScoreCard";
 
 interface HomePageProps {
   isDark: boolean;
@@ -26,6 +29,8 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
   const [err, setErr] = useState("");
   // CHERRY BLOSSOM FEATURE — remove next line when done
   const { isBlossom } = useBlossomContext();
+  // BASEBALL FEATURE
+  const { isBaseball } = useBaseballContext();
 
   const { history, push: pushHistory } = useSearchHistory();
   const cw = curWeek();
@@ -99,21 +104,25 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
           )}
         </div>
 
-        {/* D-Day 카드 */}
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900/50 dark:to-indigo-950/20 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-6 flex justify-between items-center shadow-sm">
-          <div>
-            <div className="text-xs font-bold text-slate-400 uppercase mb-1">Summer Break</div>
-            <div className="text-3xl font-black text-blue-600 dark:text-blue-400">
-              {cw === "summer" ? "방학중! 🏝️" : `D-${dd}`}
+        {/* D-Day 카드 or 야구 점수 */}
+        {isBaseball ? (
+          <BaseballScoreCard />
+        ) : (
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900/50 dark:to-indigo-950/20 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-6 flex justify-between items-center shadow-sm">
+            <div>
+              <div className="text-xs font-bold text-slate-400 uppercase mb-1">Summer Break</div>
+              <div className="text-3xl font-black text-blue-600 dark:text-blue-400">
+                {cw === "summer" ? "방학중! 🏝️" : `D-${dd}`}
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-xs font-bold text-slate-400 uppercase mb-1">Current Week</div>
+              <div className="text-xl font-black text-slate-700 dark:text-slate-200">
+                {cw === "summer" ? "Summer" : cw === null ? "실습 예정" : `${cw}주차`}
+              </div>
             </div>
           </div>
-          <div className="text-right">
-            <div className="text-xs font-bold text-slate-400 uppercase mb-1">Current Week</div>
-            <div className="text-xl font-black text-slate-700 dark:text-slate-200">
-              {cw === "summer" ? "Summer" : cw === null ? "실습 예정" : `${cw}주차`}
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* 기능 버튼 그리드 */}
         <div className="grid grid-cols-2 gap-4">
@@ -181,19 +190,6 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">💬</span>
             <span>익명 게시판</span>
           </button>
-          <a
-            href="https://www.tving.com/sports/kbo"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-2 active:scale-95 transition-all text-center px-2"
-          >
-            <span className="text-[13px] leading-tight">
-              오늘의 야구
-              <br />
-              <span className="text-red-500 text-[11px]">🔴 TVING 생중계</span>
-            </span>
-            <span className="text-xl">⚾</span>
-          </a>
         </div>
 
         <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
