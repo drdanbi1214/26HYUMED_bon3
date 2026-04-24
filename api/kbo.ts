@@ -112,11 +112,9 @@ export default async function handler(req: any, res: any) {
         return list.map((g: any) => ({
           id: g.G_ID ?? g.gameId ?? String(Math.random()),
           away: g.AWAY_NM ?? g.awayTeam ?? "?",
-          awayScore: g.AWAY_SCORE != null ? Number(g.AWAY_SCORE) :
-                     g.AWAY_RESULT_SCORE != null ? Number(g.AWAY_RESULT_SCORE) : null,
+          awayScore: g.T_SCORE_CN != null ? Number(g.T_SCORE_CN) : null,
           home: g.HOME_NM ?? g.homeTeam ?? "?",
-          homeScore: g.HOME_SCORE != null ? Number(g.HOME_SCORE) :
-                     g.HOME_RESULT_SCORE != null ? Number(g.HOME_RESULT_SCORE) : null,
+          homeScore: g.B_SCORE_CN != null ? Number(g.B_SCORE_CN) : null,
           status: g.GAME_STATE_SC ?? g.GAME_SC_NM ?? g.status ?? "",
           time: g.G_TM ?? g.startTime ?? "",
         }));
@@ -208,18 +206,7 @@ export default async function handler(req: any, res: any) {
     fetchGames(ystdStr, ystdDash),
   ]);
 
-  // 실제 KBO 응답 원본 필드 확인용 (점수 필드명 파악)
-  let rawSample: any = null;
-  try {
-    const r2 = await fetch(
-      `https://www.koreabaseball.com/ws/Main.asmx/GetKboGameList?leId=1&srId=0&date=${ystdStr}`,
-      { headers: BROWSER }
-    );
-    const j2 = await r2.json();
-    rawSample = j2?.game?.[0] ?? j2;
-  } catch {}
-
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Cache-Control", "no-store");
-  res.status(200).json({ today, yesterday, todayStr, ystdStr, debug, rawSample });
+  res.status(200).json({ today, yesterday, todayStr, ystdStr, debug });
 }
