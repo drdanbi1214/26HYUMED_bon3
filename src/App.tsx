@@ -58,8 +58,34 @@ function PushButton() {
     }
   }
 
+  const unsubscribe = async () => {
+    setStatus('loading')
+    try {
+      const reg = await navigator.serviceWorker.getRegistration('/sw.js')
+      const sub = await reg?.pushManager.getSubscription()
+      if (sub) {
+        await fetch('/api/unregister-push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        })
+        await sub.unsubscribe()
+      }
+      setStatus('idle')
+    } catch {
+      setStatus('subscribed')
+    }
+  }
+
   if (status === 'subscribed') return (
-    <p style={{ textAlign: 'center', fontSize: '12px', color: '#10b981', marginTop: '8px' }}>🔔 일실기 알림 구독 중</p>
+    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+      <button
+        onClick={unsubscribe}
+        style={{ fontSize: '12px', padding: '6px 14px', borderRadius: '20px', background: '#f1f5f9', color: '#64748b', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+      >
+        🔕 일실기 알림 취소
+      </button>
+    </div>
   )
   if (status === 'denied') return (
     <p style={{ textAlign: 'center', fontSize: '12px', color: '#94a3b8', marginTop: '8px' }}>알림이 차단됨 (브라우저 설정에서 허용)</p>
