@@ -14,7 +14,9 @@ export function useClosures() {
     supabase
       .from("closures")
       .select("*")
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.error("[closures] fetch error:", error);
+        console.log("[closures] fetched:", data?.length ?? 0, "rows");
         setClosures((data as Closure[]) ?? []);
         setLoading(false);
       });
