@@ -75,3 +75,14 @@ export const CATEGORY_LABEL: Record<RestaurantCategory, string> = {
   guri: "구리",
   outside: "외부",
 };
+
+// Supabase closures 테이블 row
+export interface Closure {
+  id: number;
+  hospital: "서울" | "구리";
+  dept_code: string;
+  doctor_name: string;
+  start_date: string; // "YYYY-MM-DD"
+  end_date: string;   // "YYYY-MM-DD"
+  reason: string;
+}

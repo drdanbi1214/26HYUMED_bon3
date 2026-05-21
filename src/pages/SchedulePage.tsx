@@ -5,6 +5,7 @@ import { WeekCard } from "@/components/schedule/WeekCard";
 import { Icon } from "@/components/ui/Icon";
 import { curWeek, fmtD } from "@/utils/date";
 import { buildSearchResult } from "@/utils/buildSchedule";
+import { useClosures } from "@/hooks/useClosures";
 
 interface SchedulePageProps {
   isDark: boolean;
@@ -32,6 +33,8 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
     if (!m) return null;
     return buildSearchResult(m[1], +m[2], stateName);
   }, [id, stateName]);
+
+  const { closures } = useClosures();
 
   if (!res) return <Navigate to="/" replace />;
 
@@ -121,7 +124,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
 
         <div className="space-y-3">
           {res.weeks.map(week => (
-            <WeekCard key={week.w} week={week} isCurrent={week.w === cw} />
+            <WeekCard key={week.w} week={week} isCurrent={week.w === cw} closures={closures} />
           ))}
         </div>
       </div>
