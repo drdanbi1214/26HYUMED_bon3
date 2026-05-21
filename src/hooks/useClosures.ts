@@ -7,6 +7,7 @@ export function useClosures() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("[closures] isSupabaseConfigured:", isSupabaseConfigured);
     if (!isSupabaseConfigured) {
       setLoading(false);
       return;
