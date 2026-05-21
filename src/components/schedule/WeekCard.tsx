@@ -78,7 +78,11 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week, isCurrent, closures })
                   <div className="mt-1 px-3 py-2 rounded-xl bg-pink-50 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900 shadow-sm space-y-1">
                     {deptClosures.map((c, ci) => (
                       <div key={ci} className="text-[11px] text-pink-800 dark:text-pink-300">
-                        {c.doctor_name} {fmtD(new Date(c.start_date + "T00:00:00"))}~{fmtD(new Date(c.end_date + "T00:00:00"))} {c.reason}
+                        {c.doctor_name}{" "}
+                        {c.start_date === c.end_date
+                          ? fmtD(new Date(c.start_date + "T00:00:00"))
+                          : `${fmtD(new Date(c.start_date + "T00:00:00"))}~${fmtD(new Date(c.end_date + "T00:00:00"))}`}{" "}
+                        {c.reason}
                       </div>
                     ))}
                   </div>
