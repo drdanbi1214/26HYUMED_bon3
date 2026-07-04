@@ -43,6 +43,9 @@ function friendlyError(e: { code?: string; message?: string } | null | undefined
   if (e?.code === "42P01" || /does not exist/i.test(e?.message ?? "")) {
     return "서버에 or_rooms 테이블이 없어요. supabase/or_rooms.sql을 Supabase SQL Editor에서 실행해주세요.";
   }
+  if (/fetch/i.test(e?.message ?? "")) {
+    return "서버에 연결하지 못했어요. 네트워크를 확인하고 다시 시도해주세요.";
+  }
   return e?.message || "요청에 실패했어요. 잠시 후 다시 시도해주세요.";
 }
 

@@ -213,6 +213,20 @@ export async function exportExcel(
       cell.alignment = { horizontal: "center", vertical: "middle" };
     });
 
+    // 빈 칸 기본 테두리(연함)를 먼저 깔고, 수술 박스는 진한 테두리로 덮는다
+    for (let r = 2; r <= 2 + slots.length; r++) {
+      for (let cc = 1; cc <= lastCol; cc++) {
+        ws.getCell(r, cc).border = BORDER;
+      }
+    }
+
+    // 수술 박스: 같은 색이 위아래로 붙어도 구분되도록 진한 테두리
+    const caseBorder: Partial<ExcelJS.Borders> = {
+      top: { style: "thin", color: { argb: "FF475569" } },
+      left: { style: "thin", color: { argb: "FF475569" } },
+      bottom: { style: "thin", color: { argb: "FF475569" } },
+      right: { style: "thin", color: { argb: "FF475569" } },
+    };
     col = 2;
     for (const day of grid.days) {
       for (const lane of day.lanes) {
@@ -235,27 +249,21 @@ export async function exportExcel(
             pattern: "solid",
             fgColor: { argb: `FF${surgeonColor(c.surgeon)}` },
           };
+          cell.border = caseBorder;
         }
         col++;
       }
     }
 
-    for (let r = 2; r <= 2 + slots.length; r++) {
-      for (let cc = 1; cc <= lastCol; cc++) {
-        ws.getCell(r, cc).border = BORDER;
-      }
-    }
-    // 요일 경계(각 날짜의 첫 레인 열 왼쪽)는 굵은 선으로
+    // 요일 경계(각 날짜의 첫 레인 열 왼쪽)는 굵은 선으로 — 기존 테두리는 유지하고 왼쪽만 덮어쓴다
     {
-      const dayBorder: Partial<ExcelJS.Borders> = {
-        ...BORDER,
-        left: { style: "medium", color: { argb: "FF64748B" } },
-      };
+      const mediumLeft = { style: "medium" as const, color: { argb: "FF64748B" } };
       let boundaryCol = 2;
       grid.days.forEach((day, di) => {
         if (di > 0) {
           for (let r = 2; r <= 2 + slots.length; r++) {
-            ws.getCell(r, boundaryCol).border = dayBorder;
+            const cell = ws.getCell(r, boundaryCol);
+            cell.border = { ...cell.border, left: mediumLeft };
           }
         }
         boundaryCol += day.lanes.length;

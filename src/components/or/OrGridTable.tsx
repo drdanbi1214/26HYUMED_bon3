@@ -99,7 +99,7 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, onC
                       key={key}
                       rowSpan={span}
                       onClick={onCaseClick ? () => onCaseClick(oc) : undefined}
-                      className={`border border-slate-200 dark:border-slate-700 align-top p-0${dayEdge}${
+                      className={`border border-slate-400 dark:border-slate-500 align-top p-0${dayEdge}${
                         onCaseClick ? " cursor-pointer active:opacity-70 transition-opacity" : ""
                       }`}
                       style={{ minWidth: 132, backgroundColor: `#${surgeonColor(oc.surgeon)}` }}
