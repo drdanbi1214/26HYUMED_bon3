@@ -121,6 +121,22 @@ export async function parseOrExcel(buf: ArrayBuffer): Promise<OrCase[]> {
   return out;
 }
 
+/**
+ * 비밀번호 걸린 xlsx(암호화 CFB 컨테이너)를 해독해서 일반 xlsx 버퍼로 돌려준다.
+ * exceljs는 암호화 파일을 못 열어서 xlsx-populate로 먼저 푼다.
+ */
+export async function decryptXlsx(buf: ArrayBuffer, password: string): Promise<ArrayBuffer> {
+  const { default: XlsxPopulate } = await import("xlsx-populate/browser/xlsx-populate.min.js");
+  const wb = await XlsxPopulate.fromDataAsync(buf, { password });
+  const out = await wb.outputAsync("arraybuffer");
+  // xlsx-populate가 빈 docProps/app.xml을 쓰는데 exceljs가 이걸 읽다 죽는다
+  // ("Cannot read properties of undefined (reading 'company')") → 제거하면 exceljs가 그냥 건너뜀
+  const { default: JSZip } = await import("jszip");
+  const zip = await JSZip.loadAsync(out);
+  zip.remove("docProps/app.xml");
+  return zip.generateAsync({ type: "arraybuffer" });
+}
+
 // ───────────────────────── 엑셀 다운로드 ─────────────────────────
 
 const BORDER: Partial<ExcelJS.Borders> = {
