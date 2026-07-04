@@ -3,6 +3,8 @@
  * 시간은 자정 기준 분(minute) 단위.
  */
 export interface OrCase {
+  /** 파싱 순서 고유번호. 방(배정) 기능에서 학생 배정의 키로 쓴다. */
+  idx: number;
   date: string; // "2026-07-06"
   startMin: number;
   durMin: number;
@@ -121,4 +123,61 @@ export function roomLabel(room: string): string {
 /** 원본 배정표와 같은 "환자번호_환자명:수술명_교수_방" 문자열 (엑셀 다운로드용) */
 export function caseText(c: OrCase): string {
   return `${c.patientNo}_${c.patientName}:${c.opName}_${c.surgeon}_${c.room}`;
+}
+
+/** 업로드 시각 → "3/4 (23:20) 기준" */
+export function fmtStamp(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getMonth() + 1}/${d.getDate()} (${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}) 기준`;
+}
+
+// ───────────── 재업로드 변경 감지 ─────────────
+
+export interface OrChange {
+  type: "new" | "time" | "removed";
+  text: string;
+}
+
+/**
+ * 기존 시간표와 새로 올린 시간표를 비교한다.
+ * - 같은 수술(환자번호+환자명+수술명)은 날짜/시간/방이 바뀌면 "time" 변경으로,
+ *   기존 학생 배정은 새 idx로 이어받는다.
+ * - 짝이 없으면 신규(new) / 사라짐(removed).
+ */
+export function diffCases(
+  oldCases: OrCase[],
+  newCases: OrCase[],
+  oldAssignments: Record<string, string>,
+): { changes: OrChange[]; assignments: Record<string, string> } {
+  const keyOf = (c: OrCase) => `${c.patientNo}|${c.patientName}|${c.opName}`;
+  const when = (c: OrCase) => `${fmtDateHeader(c.date)} ${fmtTime(c.startMin)}`;
+  const oldByKey = new Map<string, OrCase[]>();
+  for (const c of oldCases) {
+    const k = keyOf(c);
+    const q = oldByKey.get(k);
+    if (q) q.push(c);
+    else oldByKey.set(k, [c]);
+  }
+
+  const changes: OrChange[] = [];
+  const assignments: Record<string, string> = {};
+  for (const n of newCases) {
+    const o = oldByKey.get(keyOf(n))?.shift();
+    if (!o) {
+      changes.push({ type: "new", text: `${n.patientName} · ${n.opName} (${n.surgeon}) — ${when(n)}` });
+      continue;
+    }
+    const a = oldAssignments[String(o.idx)];
+    if (a) assignments[String(n.idx)] = a;
+    if (o.date !== n.date || o.startMin !== n.startMin || o.room !== n.room) {
+      const roomNote = o.room !== n.room ? ` (${roomLabel(o.room)}→${roomLabel(n.room)})` : "";
+      changes.push({ type: "time", text: `${n.patientName} (${n.surgeon}): ${when(o)} → ${when(n)}${roomNote}` });
+    }
+  }
+  for (const q of oldByKey.values()) {
+    for (const o of q) {
+      changes.push({ type: "removed", text: `${o.patientName} · ${o.opName} (${o.surgeon}) — ${when(o)}` });
+    }
+  }
+  return { changes, assignments };
 }

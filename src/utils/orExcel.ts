@@ -124,6 +124,7 @@ export async function parseOrExcel(buf: ArrayBuffer): Promise<OrCase[]> {
     const startMin = toMinutes(get(row, "시작"));
     if (startMin == null) continue;
     out.push({
+      idx: out.length,
       date,
       startMin,
       durMin: toDuration(get(row, "소요")) ?? 60,
@@ -163,11 +164,17 @@ const BORDER: Partial<ExcelJS.Borders> = {
 };
 
 export async function exportExcel(
-  sheets: { sheetName: string; title: string; grid: SectionGrid }[],
+  sheets: {
+    sheetName: string;
+    title: string;
+    grid: SectionGrid;
+    /** 학생 배정 (OrCase.idx → 이름). 있으면 셀에 같이 적는다 */
+    assignments?: Record<string, string>;
+  }[],
 ): Promise<Blob> {
   const wb = new ExcelJS.Workbook();
 
-  for (const { sheetName, title: titleText, grid } of sheets) {
+  for (const { sheetName, title: titleText, grid, assignments } of sheets) {
     const ws = wb.addWorksheet(sheetName);
     const slots: number[] = [];
     for (let t = grid.startMin; t < grid.endMin; t += SLOT_MIN) slots.push(t);
@@ -217,7 +224,10 @@ export async function exportExcel(
           );
           if (r2 > r1) ws.mergeCells(r1, col, r2, col);
           const cell = ws.getCell(r1, col);
-          cell.value = `${fmtTime(c.startMin)}~${fmtTime(c.startMin + c.durMin)}\n${caseText(c)}`;
+          const assigned = assignments?.[String(c.idx)];
+          cell.value =
+            `${fmtTime(c.startMin)}~${fmtTime(c.startMin + c.durMin)}\n${caseText(c)}` +
+            (assigned ? `\n배정: ${assigned}` : "");
           cell.font = { size: 8 };
           cell.alignment = { wrapText: true, vertical: "top" };
           cell.fill = {
