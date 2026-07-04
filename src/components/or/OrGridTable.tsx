@@ -109,9 +109,15 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
           </tr>
         </thead>
         <tbody>
-          {slots.map((t, ri) => (
+          {slots.map((t, ri) => {
+            // 13:30(오후 시작) 기점 가로 굵은 선
+            const pmLine = t === 13 * 60 + 30;
+            const pmTop = pmLine ? " border-t-2 border-t-slate-400 dark:border-t-slate-500" : "";
+            // 병합 셀 테두리가 인접 빈칸과 충돌해 사라지지 않도록 inset 그림자로 확실히 그림
+            const caseShadow = "inset 0 0 0 1px #64748b";
+            return (
             <tr key={t}>
-              <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 text-[9px] text-slate-400 px-1.5 border border-slate-100 dark:border-slate-800 whitespace-nowrap text-center h-9">
+              <td className={`sticky left-0 z-10 bg-white dark:bg-slate-900 text-[9px] text-slate-400 px-1.5 border border-slate-100 dark:border-slate-800 whitespace-nowrap text-center h-9${pmTop}`}>
                 {fmtTime(t)}
               </td>
               {dayCells.flatMap((d, di) => {
@@ -126,7 +132,7 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                     return (
                       <td
                         key={key}
-                        className={`border border-slate-100 dark:border-slate-800${dayEdge}`}
+                        className={`border border-slate-100 dark:border-slate-800${dayEdge}${pmTop}`}
                         style={{ minWidth: 106 }}
                       />
                     );
@@ -138,10 +144,10 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                       key={key}
                       rowSpan={span}
                       onClick={onCaseClick ? () => onCaseClick(oc) : undefined}
-                      className={`border border-slate-400 dark:border-slate-500 align-top p-0${dayEdge}${
+                      className={`align-top p-0${dayEdge}${pmTop}${
                         onCaseClick ? " cursor-pointer active:opacity-70 transition-opacity" : ""
                       }`}
-                      style={{ minWidth: 106, backgroundColor: `#${surgeonColor(oc.surgeon)}` }}
+                      style={{ minWidth: 106, backgroundColor: `#${surgeonColor(oc.surgeon)}`, boxShadow: caseShadow }}
                     >
                       <div className="p-1.5 space-y-0.5">
                         <div className="text-[9px] font-semibold text-slate-500">
@@ -177,7 +183,7 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                     laneTds.push(
                       <td
                         key={key}
-                        className="border border-slate-100 dark:border-slate-800"
+                        className={`border border-slate-100 dark:border-slate-800${pmTop}`}
                         style={{ minWidth: 88 }}
                       />,
                     );
@@ -187,8 +193,8 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                       <td
                         key={key}
                         rowSpan={block.span}
-                        className="border border-slate-400 dark:border-slate-500 align-top p-0"
-                        style={{ minWidth: 88, backgroundColor: "#E0F2FE" }}
+                        className={`align-top p-0${pmTop}`}
+                        style={{ minWidth: 88, backgroundColor: "#E0F2FE", boxShadow: caseShadow }}
                       >
                         <div className="p-1.5 space-y-1">
                           <div className="text-[9px] font-bold text-sky-600">
@@ -212,7 +218,8 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                 return laneTds;
               })}
             </tr>
-          ))}
+            );
+          })}
         </tbody>
       </table>
     </div>

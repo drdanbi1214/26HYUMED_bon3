@@ -307,6 +307,19 @@ export async function exportExcel(
         boundaryCol += dayWidths[di];
       });
     }
+
+    // 13:30(오후 시작) 기점 가로 굵은 선
+    {
+      const pmMin = 13 * 60 + 30;
+      if (pmMin > grid.startMin && pmMin < grid.endMin) {
+        const pmRow = 3 + (pmMin - grid.startMin) / SLOT_MIN;
+        const mediumTop = { style: "medium" as const, color: { argb: "FF64748B" } };
+        for (let cc = 1; cc <= lastCol; cc++) {
+          const cell = ws.getCell(pmRow, cc);
+          cell.border = { ...cell.border, top: mediumTop };
+        }
+      }
+    }
     ws.getColumn(1).width = 12;
     for (let cc = 2; cc <= lastCol; cc++) ws.getColumn(cc).width = 17;
     ws.views = [{ state: "frozen", xSplit: 1, ySplit: 2 }];
