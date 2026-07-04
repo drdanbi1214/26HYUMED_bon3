@@ -184,6 +184,13 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">{isBaseball ? "⚾" : "💬"}</span>
             <span>익명 게시판</span>
           </button>
+          <button
+            onClick={() => navigate("/or-schedule")}
+            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-md flex items-center justify-center gap-3 active:scale-95 transition-all"
+          >
+            <span>수술 시간표</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "🏥"}</span>
+          </button>
         </div>
 
         <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
