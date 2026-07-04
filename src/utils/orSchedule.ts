@@ -60,8 +60,9 @@ export interface SectionGrid {
   endMin: number;
 }
 
-export function buildGrid(cases: OrCase[]): SectionGrid {
-  const dates = [...new Set(cases.map(c => c.date))].sort();
+/** extraDates: 수술이 없어도 열을 만들 날짜 (외래만 있는 날 등) */
+export function buildGrid(cases: OrCase[], extraDates: string[] = []): SectionGrid {
+  const dates = [...new Set([...cases.map(c => c.date), ...extraDates])].sort();
   let startMin = 8 * 60;
   let endMin = 17 * 60;
   for (const c of cases) {

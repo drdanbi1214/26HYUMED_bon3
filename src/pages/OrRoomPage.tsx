@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { OrExcelUploader } from "@/components/or/OrExcelUploader";
 import { OrGridTable } from "@/components/or/OrGridTable";
+import { useToast } from "@/components/ui/Toast";
+import { NAME_LOOKUP } from "@/data/members";
 import { useOrRoom } from "@/hooks/useOrRooms";
 import {
   AMPM_LABEL,
@@ -11,6 +13,7 @@ import {
   ViewId,
   VIEW_LABELS,
   buildGrid,
+  clinicRange,
   diffCases,
   fmtDateHeader,
   fmtHours,
@@ -39,6 +42,8 @@ interface DashEntry {
   sort: number;
   time: string;
   label: string;
+  /** "메시지 복사"용: "정윤경 교수님 수술(8:00-13:00)" */
+  msgPart: string;
   /** 수술 항목이면 메모 편집용 caseIdx */
   caseIdx?: number;
 }
@@ -52,6 +57,18 @@ function todayStr(): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/** 조원 명단에서 학번(예: E3) 찾기. 없으면 빈 문자열. */
+function studentCode(name: string): string {
+  const m = NAME_LOOKUP[name.trim()];
+  return m ? `${m.group}${m.number}` : "";
+}
+
+/** "E3 유재섭"처럼 학번+이름. 학번 없으면 이름만. */
+function withCode(name: string): string {
+  const code = studentCode(name);
+  return code ? `${code} ${name}` : name;
+}
+
 /**
  * 배정 방: 저장된 시간표 + 학생 배정 + 외래 배정.
  * 대시보드는 날짜별 → 학생별로 묶고, 지난 날짜는 시간표 아래로 분리한다.
@@ -61,6 +78,7 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
   const { id } = useParams<{ id: string }>();
   const { room, loading, error, saveTimetable, saveExtras, saveClinics, clearChanges } =
     useOrRoom(id ?? "");
+  const toast = useToast();
 
   // 새로 올려서 아직 저장 안 된 파싱 결과
   const [pendingCases, setPendingCases] = useState<OrCase[] | null>(null);
@@ -82,13 +100,15 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
 
   const grids = useMemo(() => {
     if (!room?.cases) return null;
+    // 외래만 있는 날짜도 열이 생기도록 clinic 날짜를 함께 넘긴다
+    const clinicDates = room.clinics.map(c => c.date);
     const split = splitBySection(room.cases);
     return {
-      1: buildGrid(split[1]),
-      2: buildGrid(split[2]),
-      all: buildGrid(room.cases),
+      1: buildGrid(split[1], clinicDates),
+      2: buildGrid(split[2], clinicDates),
+      all: buildGrid(room.cases, clinicDates),
     } as Record<ViewId, SectionGrid>;
-  }, [room?.cases]);
+  }, [room?.cases, room?.clinics]);
 
   const dates = useMemo(
     () => (room?.cases ? [...new Set(room.cases.map(c => c.date))].sort() : []),
@@ -118,17 +138,20 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
           sort: c.startMin,
           time: fmtTime(c.startMin),
           label: `${c.surgeon}_${roomLabel(c.room)}_${c.opName}`,
+          msgPart: `${c.surgeon} 교수님 수술(${fmtTime(c.startMin)}-${fmtTime(c.startMin + c.durMin)})`,
           caseIdx: c.idx,
         });
       }
     }
     for (const cl of room.clinics) {
+      const { start, end } = clinicRange(cl.ampm);
       for (const n of splitNames(cl.student)) {
         add(cl.date, n, {
           key: `c${cl.id}-${n}`,
           sort: cl.ampm === "AM" ? 479 : 779, // 같은 시간대 수술보다 살짝 앞에
           time: `${AMPM_LABEL[cl.ampm]} 외래`,
           label: `${cl.prof}_외래`,
+          msgPart: `${cl.prof} 교수님 외래(${fmtTime(start)}-${fmtTime(end)})`,
         });
       }
     }
@@ -242,6 +265,23 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     await saveClinics(room.clinics.filter(c => c.id !== clinicId));
   };
 
+  /** 해당 날짜의 학생별 일정을 교수님 보고용 메시지 서식으로 복사 */
+  const copyMessage = async (dash: DashDate) => {
+    if (!room) return;
+    const sec = room.view === "all" ? "전체" : `서울 ${room.view} section`;
+    const lines = dash.students.map(
+      s => `${withCode(s.name)} - ${s.entries.map(e => e.msgPart).join("/ ")}`,
+    );
+    const msg = [`${sec} 익일 일정 계획 다음과 같습니다.`, ...lines, "감사합니다 교수님"].join("\n");
+    try {
+      await navigator.clipboard.writeText(msg);
+      toast.success("메시지를 복사했어요");
+    } catch {
+      // 클립보드 접근이 막힌 환경 폴백
+      window.prompt("아래 메시지를 복사하세요", msg);
+    }
+  };
+
   const download = async () => {
     if (!grids || !room?.cases || room.view == null) return;
     setDownloading(true);
@@ -272,16 +312,24 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
 
   const renderDash = (list: DashDate[], muted: boolean) => (
     <div className="space-y-4">
-      {list.map(({ date, students }) => (
-        <div key={date}>
-          <p className={`text-xs font-bold mb-1.5 ${muted ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`}>
-            📅 {fmtDateHeader(date)}
-          </p>
+      {list.map(dash => (
+        <div key={dash.date}>
+          <div className="flex items-center justify-between mb-1.5">
+            <p className={`text-xs font-bold ${muted ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`}>
+              📅 {fmtDateHeader(dash.date)}
+            </p>
+            <button
+              onClick={() => copyMessage(dash)}
+              className="text-[10px] font-bold text-indigo-600 dark:text-indigo-300 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900 active:scale-95 transition-all"
+            >
+              📋 메시지 복사
+            </button>
+          </div>
           <div className="space-y-2 pl-1">
-            {students.map(({ name, entries }) => (
+            {dash.students.map(({ name, entries }) => (
               <div key={name}>
                 <p className={`text-xs font-bold ${muted ? "text-slate-400" : "text-blue-600 dark:text-blue-400"}`}>
-                  {name}
+                  {withCode(name)}
                 </p>
                 <div className="space-y-0.5 mt-0.5">
                   {entries.map(e => {
@@ -291,20 +339,22 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
                         key={e.key}
                         className={`flex items-start gap-2 text-[11px] ${muted ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`}
                       >
-                        <span className="shrink-0 font-semibold whitespace-nowrap">{e.time}</span>
-                        <span className="flex-1 leading-snug break-keep">{e.label}</span>
-                        {e.caseIdx != null && (
+                        {e.caseIdx != null ? (
                           <button
                             onClick={() => openAssignByIdx(e.caseIdx!)}
                             aria-label="메모"
                             title={memo || "메모 추가"}
-                            className={`shrink-0 text-[12px] leading-none px-1 py-0.5 rounded-md active:scale-90 transition-all ${
+                            className={`shrink-0 text-[12px] leading-none rounded-md active:scale-90 transition-all ${
                               memo ? "" : "opacity-30 grayscale"
                             }`}
                           >
                             📝
                           </button>
+                        ) : (
+                          <span className="shrink-0 w-[14px]" />
                         )}
+                        <span className="shrink-0 font-semibold whitespace-nowrap">{e.time}</span>
+                        <span className="flex-1 leading-snug break-keep">{e.label}</span>
                       </div>
                     );
                   })}
@@ -587,17 +637,12 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
             )}
 
             <div className="flex gap-2">
-              <select
+              <input
+                type="date"
                 value={cDate}
                 onChange={e => setCDate(e.target.value)}
                 className="flex-1 px-3 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none text-sm"
-              >
-                {dates.map(d => (
-                  <option key={d} value={d}>
-                    {fmtDateHeader(d)}
-                  </option>
-                ))}
-              </select>
+              />
               <div className="flex rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 {(["AM", "PM"] as const).map(a => (
                   <button
