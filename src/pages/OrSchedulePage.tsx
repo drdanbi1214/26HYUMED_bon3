@@ -319,11 +319,13 @@ const GridTable: React.FC<{ grid: SectionGrid }> = ({ grid }) => {
             <th className="sticky left-0 z-10 bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 px-2 py-2 border border-slate-200 dark:border-slate-700">
               시간
             </th>
-            {dayCells.map(d => (
+            {dayCells.map((d, di) => (
               <th
                 key={d.date}
                 colSpan={d.cells.length}
-                className="bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 px-2 py-2 border border-slate-200 dark:border-slate-700 whitespace-nowrap"
+                className={`bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 px-2 py-2 border border-slate-200 dark:border-slate-700 whitespace-nowrap ${
+                  di > 0 ? "border-l-2 border-l-slate-400 dark:border-l-slate-500" : ""
+                }`}
               >
                 {fmtDateHeader(d.date)}
               </th>
@@ -336,16 +338,18 @@ const GridTable: React.FC<{ grid: SectionGrid }> = ({ grid }) => {
               <td className="sticky left-0 z-10 bg-white dark:bg-slate-900 text-[9px] text-slate-400 px-1.5 border border-slate-100 dark:border-slate-800 whitespace-nowrap text-center h-9">
                 {fmtTime(t)}
               </td>
-              {dayCells.flatMap(d =>
+              {dayCells.flatMap((d, di) =>
                 d.cells.map((colCells, li) => {
                   const cell = colCells[ri];
                   const key = `${d.date}-${li}`;
+                  // 요일이 바뀌는 첫 레인 왼쪽은 굵은 선으로 구분
+                  const dayEdge = di > 0 && li === 0 ? " border-l-2 border-l-slate-400 dark:border-l-slate-500" : "";
                   if (cell === "covered") return null;
                   if (cell === null) {
                     return (
                       <td
                         key={key}
-                        className="border border-slate-100 dark:border-slate-800"
+                        className={`border border-slate-100 dark:border-slate-800${dayEdge}`}
                         style={{ minWidth: 132 }}
                       />
                     );
@@ -355,13 +359,10 @@ const GridTable: React.FC<{ grid: SectionGrid }> = ({ grid }) => {
                     <td
                       key={key}
                       rowSpan={span}
-                      className="border border-slate-200 dark:border-slate-700 align-top p-0"
-                      style={{ minWidth: 132 }}
+                      className={`border border-slate-200 dark:border-slate-700 align-top p-0${dayEdge}`}
+                      style={{ minWidth: 132, backgroundColor: `#${surgeonColor(oc.surgeon)}` }}
                     >
-                      <div
-                        className="h-full p-1.5 space-y-0.5"
-                        style={{ backgroundColor: `#${surgeonColor(oc.surgeon)}` }}
-                      >
+                      <div className="p-1.5 space-y-0.5">
                         <div className="text-[9px] font-semibold text-slate-500">
                           {fmtTime(oc.startMin)}~{fmtTime(oc.startMin + oc.durMin)} · {roomLabel(oc.room)}
                         </div>

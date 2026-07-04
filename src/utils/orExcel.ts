@@ -52,6 +52,23 @@ function numText(v: ExcelJS.CellValue): string {
   return cellText(v);
 }
 
+/**
+ * 소요시간(분). 파일에 따라 숫자(120), 텍스트("120", "120분"),
+ * 시간 셀(2:00), 수식 결과 등 제각각이라 전부 분으로 환산한다.
+ */
+function toDuration(v: ExcelJS.CellValue): number | null {
+  if (typeof v === "number") {
+    if (v <= 0) return null;
+    return v < 1 ? Math.round(v * 24 * 60) : Math.round(v); // 1 미만이면 엑셀 시간 분수
+  }
+  if (v instanceof Date) return v.getUTCHours() * 60 + v.getUTCMinutes();
+  const t = cellText(v);
+  const hm = t.match(/(\d{1,2})\s*:\s*(\d{2})/);
+  if (hm) return Number(hm[1]) * 60 + Number(hm[2]);
+  const m = t.match(/\d+/);
+  return m ? Number(m[0]) : null;
+}
+
 interface SheetMatch {
   ws: ExcelJS.Worksheet;
   headerRow: number;
@@ -106,11 +123,10 @@ export async function parseOrExcel(buf: ArrayBuffer): Promise<OrCase[]> {
     if (cellText(get(row, "취소일시"))) continue;
     const startMin = toMinutes(get(row, "시작"));
     if (startMin == null) continue;
-    const durRaw = get(row, "소요");
     out.push({
       date,
       startMin,
-      durMin: typeof durRaw === "number" && durRaw > 0 ? Math.round(durRaw) : 60,
+      durMin: toDuration(get(row, "소요")) ?? 60,
       room: numText(get(row, "수술실")) || "?",
       patientNo: numText(get(row, "환자번호")),
       patientName,
@@ -218,6 +234,22 @@ export async function exportExcel(
       for (let cc = 1; cc <= lastCol; cc++) {
         ws.getCell(r, cc).border = BORDER;
       }
+    }
+    // 요일 경계(각 날짜의 첫 레인 열 왼쪽)는 굵은 선으로
+    {
+      const dayBorder: Partial<ExcelJS.Borders> = {
+        ...BORDER,
+        left: { style: "medium", color: { argb: "FF64748B" } },
+      };
+      let boundaryCol = 2;
+      grid.days.forEach((day, di) => {
+        if (di > 0) {
+          for (let r = 2; r <= 2 + slots.length; r++) {
+            ws.getCell(r, boundaryCol).border = dayBorder;
+          }
+        }
+        boundaryCol += day.lanes.length;
+      });
     }
     ws.getColumn(1).width = 12;
     for (let cc = 2; cc <= lastCol; cc++) ws.getColumn(cc).width = 34;
