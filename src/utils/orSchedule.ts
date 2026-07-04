@@ -125,6 +125,31 @@ export function caseText(c: OrCase): string {
   return `${c.patientNo}_${c.patientName}:${c.opName}_${c.surgeon}_${c.room}`;
 }
 
+// ───────────── 외래 배정 ─────────────
+
+export interface OrClinic {
+  id: string;
+  date: string; // "2026-07-06"
+  ampm: "AM" | "PM";
+  prof: string;
+  student: string; // 배정 학생 (쉼표로 여러 명)
+}
+
+export const AMPM_LABEL: Record<"AM" | "PM", string> = { AM: "오전", PM: "오후" };
+
+/** 외래 블록이 차지하는 그리드 구간: 오전 9~12시, 오후 13:30~17시 */
+export function clinicRange(ampm: "AM" | "PM"): { start: number; end: number } {
+  return ampm === "AM" ? { start: 9 * 60, end: 12 * 60 } : { start: 13 * 60 + 30, end: 17 * 60 };
+}
+
+/** 분 → "3h30m" (대시보드 총 수술시간 요약용) */
+export function fmtHours(min: number): string {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h && m) return `${h}h${m}m`;
+  return h ? `${h}h` : `${m}m`;
+}
+
 /** 업로드 시각 → "3/4 (23:20) 기준" */
 export function fmtStamp(iso: string): string {
   const d = new Date(iso);
@@ -141,14 +166,14 @@ export interface OrChange {
 /**
  * 기존 시간표와 새로 올린 시간표를 비교한다.
  * - 같은 수술(환자번호+환자명+수술명)은 날짜/시간/방이 바뀌면 "time" 변경으로,
- *   기존 학생 배정은 새 idx로 이어받는다.
+ *   기존 학생 배정은 새 idx로 이어받는다. idxMap(옛 idx→새 idx)으로 메모 등도 이어받을 수 있다.
  * - 짝이 없으면 신규(new) / 사라짐(removed).
  */
 export function diffCases(
   oldCases: OrCase[],
   newCases: OrCase[],
   oldAssignments: Record<string, string>,
-): { changes: OrChange[]; assignments: Record<string, string> } {
+): { changes: OrChange[]; assignments: Record<string, string>; idxMap: Record<string, string> } {
   const keyOf = (c: OrCase) => `${c.patientNo}|${c.patientName}|${c.opName}`;
   const when = (c: OrCase) => `${fmtDateHeader(c.date)} ${fmtTime(c.startMin)}`;
   const oldByKey = new Map<string, OrCase[]>();
@@ -161,12 +186,14 @@ export function diffCases(
 
   const changes: OrChange[] = [];
   const assignments: Record<string, string> = {};
+  const idxMap: Record<string, string> = {};
   for (const n of newCases) {
     const o = oldByKey.get(keyOf(n))?.shift();
     if (!o) {
       changes.push({ type: "new", text: `${n.patientName} · ${n.opName} (${n.surgeon}) — ${when(n)}` });
       continue;
     }
+    idxMap[String(o.idx)] = String(n.idx);
     const a = oldAssignments[String(o.idx)];
     if (a) assignments[String(n.idx)] = a;
     if (o.date !== n.date || o.startMin !== n.startMin || o.room !== n.room) {
@@ -179,5 +206,5 @@ export function diffCases(
       changes.push({ type: "removed", text: `${o.patientName} · ${o.opName} (${o.surgeon}) — ${when(o)}` });
     }
   }
-  return { changes, assignments };
+  return { changes, assignments, idxMap };
 }

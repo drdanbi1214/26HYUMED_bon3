@@ -1,9 +1,12 @@
 import ExcelJS from "exceljs";
 import {
+  AMPM_LABEL,
   OrCase,
+  OrClinic,
   SectionGrid,
   SLOT_MIN,
   caseText,
+  clinicRange,
   fmtDateHeader,
   fmtTime,
   surgeonColor,
@@ -170,15 +173,26 @@ export async function exportExcel(
     grid: SectionGrid;
     /** 학생 배정 (OrCase.idx → 이름). 있으면 셀에 같이 적는다 */
     assignments?: Record<string, string>;
+    /** 외래 배정. 해당 날짜 오른쪽에 외래 열이 추가된다 */
+    clinics?: OrClinic[];
   }[],
 ): Promise<Blob> {
   const wb = new ExcelJS.Workbook();
 
-  for (const { sheetName, title: titleText, grid, assignments } of sheets) {
+  for (const { sheetName, title: titleText, grid, assignments, clinics } of sheets) {
     const ws = wb.addWorksheet(sheetName);
     const slots: number[] = [];
     for (let t = grid.startMin; t < grid.endMin; t += SLOT_MIN) slots.push(t);
-    const totalLanes = grid.days.reduce((s, d) => s + d.lanes.length, 0);
+
+    const clinicsByDate = new Map<string, OrClinic[]>();
+    for (const c of clinics ?? []) {
+      const list = clinicsByDate.get(c.date);
+      if (list) list.push(c);
+      else clinicsByDate.set(c.date, [c]);
+    }
+    // 각 날짜의 열 수 = 수술 레인 + (외래 있으면 1)
+    const dayWidths = grid.days.map(d => d.lanes.length + (clinicsByDate.has(d.date) ? 1 : 0));
+    const totalLanes = dayWidths.reduce((s, w) => s + w, 0);
     const lastCol = 1 + Math.max(totalLanes, 1);
 
     ws.mergeCells(1, 1, 1, lastCol);
@@ -194,9 +208,9 @@ export async function exportExcel(
     timeHead.font = { bold: true, size: 9 };
     timeHead.alignment = { horizontal: "center", vertical: "middle" };
     let col = 2;
-    for (const day of grid.days) {
+    for (const [di, day] of grid.days.entries()) {
       const from = col;
-      const to = col + day.lanes.length - 1;
+      const to = col + dayWidths[di] - 1;
       if (to > from) ws.mergeCells(2, from, 2, to);
       const cell = ws.getCell(2, from);
       cell.value = fmtDateHeader(day.date);
@@ -253,24 +267,48 @@ export async function exportExcel(
         }
         col++;
       }
+      // 외래 열 (날짜 맨 오른쪽)
+      const dayClinics = clinicsByDate.get(day.date);
+      if (dayClinics) {
+        for (const ampm of ["AM", "PM"] as const) {
+          const items = dayClinics.filter(c => c.ampm === ampm);
+          if (!items.length) continue;
+          const { start, end } = clinicRange(ampm);
+          const r1 = 3 + Math.max(0, Math.floor((Math.max(start, grid.startMin) - grid.startMin) / SLOT_MIN));
+          const r2 = Math.max(
+            r1,
+            3 + Math.min(slots.length, Math.ceil((Math.min(end, grid.endMin) - grid.startMin) / SLOT_MIN)) - 1,
+          );
+          if (r2 > r1) ws.mergeCells(r1, col, r2, col);
+          const cell = ws.getCell(r1, col);
+          cell.value =
+            `외래(${AMPM_LABEL[ampm]})\n` +
+            items.map(i => `${i.prof}${i.student ? ` 배정: ${i.student}` : ""}`).join("\n");
+          cell.font = { size: 8 };
+          cell.alignment = { wrapText: true, vertical: "top" };
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFE0F2FE" } };
+          cell.border = caseBorder;
+        }
+        col++;
+      }
     }
 
     // 요일 경계(각 날짜의 첫 레인 열 왼쪽)는 굵은 선으로 — 기존 테두리는 유지하고 왼쪽만 덮어쓴다
     {
       const mediumLeft = { style: "medium" as const, color: { argb: "FF64748B" } };
       let boundaryCol = 2;
-      grid.days.forEach((day, di) => {
+      grid.days.forEach((_, di) => {
         if (di > 0) {
           for (let r = 2; r <= 2 + slots.length; r++) {
             const cell = ws.getCell(r, boundaryCol);
             cell.border = { ...cell.border, left: mediumLeft };
           }
         }
-        boundaryCol += day.lanes.length;
+        boundaryCol += dayWidths[di];
       });
     }
     ws.getColumn(1).width = 12;
-    for (let cc = 2; cc <= lastCol; cc++) ws.getColumn(cc).width = 34;
+    for (let cc = 2; cc <= lastCol; cc++) ws.getColumn(cc).width = 17;
     ws.views = [{ state: "frozen", xSplit: 1, ySplit: 2 }];
   }
 

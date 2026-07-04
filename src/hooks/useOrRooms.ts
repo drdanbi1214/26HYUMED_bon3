@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import type { OrCase, OrChange, SectionId, ViewId } from "@/utils/orSchedule";
+import type { OrCase, OrChange, OrClinic, SectionId, ViewId } from "@/utils/orSchedule";
 
 export interface OrRoomMeta {
   id: string;
@@ -13,6 +13,8 @@ export interface OrRoom extends OrRoomMeta {
   cases: OrCase[] | null;
   assignments: Record<string, string>;
   changes: OrChange[];
+  clinics: OrClinic[];
+  memos: Record<string, string>;
   uploaded_at: string | null;
 }
 
@@ -34,6 +36,8 @@ function rowToRoom(d: any): OrRoom {
     cases: d.cases ?? null,
     assignments: d.assignments ?? {},
     changes: d.changes ?? [],
+    clinics: d.clinics ?? [],
+    memos: d.memos ?? {},
     uploaded_at: d.uploaded_at ?? null,
     created_at: d.created_at,
   };
@@ -126,17 +130,18 @@ export function useOrRoom(id: string) {
     };
   }, [id]);
 
-  /** 시간표 저장(첫 업로드/재업로드). 변경 알림과 이어받은 배정을 함께 기록 */
+  /** 시간표 저장(첫 업로드/재업로드). 변경 알림과 이어받은 배정·메모를 함께 기록 */
   const saveTimetable = useCallback(
     async (
       view: ViewId,
       cases: OrCase[],
       assignments: Record<string, string>,
       changes: OrChange[],
+      memos: Record<string, string>,
     ): Promise<boolean> => {
       const { data, error } = await supabase
         .from(TABLE)
-        .update({ view: String(view), cases, assignments, changes, uploaded_at: new Date().toISOString() })
+        .update({ view: String(view), cases, assignments, changes, memos, uploaded_at: new Date().toISOString() })
         .eq("id", id)
         .select()
         .single();
@@ -151,10 +156,24 @@ export function useOrRoom(id: string) {
     [id],
   );
 
-  const saveAssignments = useCallback(
-    async (assignments: Record<string, string>): Promise<boolean> => {
-      setRoom(r => (r ? { ...r, assignments } : r)); // 낙관적 반영
-      const { error } = await supabase.from(TABLE).update({ assignments }).eq("id", id);
+  /** 배정/메모 부분 업데이트 (한 번의 요청으로) */
+  const saveExtras = useCallback(
+    async (patch: { assignments?: Record<string, string>; memos?: Record<string, string> }): Promise<boolean> => {
+      setRoom(r => (r ? { ...r, ...patch } : r)); // 낙관적 반영
+      const { error } = await supabase.from(TABLE).update(patch).eq("id", id);
+      if (error) {
+        setError(friendlyError(error));
+        return false;
+      }
+      return true;
+    },
+    [id],
+  );
+
+  const saveClinics = useCallback(
+    async (clinics: OrClinic[]): Promise<boolean> => {
+      setRoom(r => (r ? { ...r, clinics } : r)); // 낙관적 반영
+      const { error } = await supabase.from(TABLE).update({ clinics }).eq("id", id);
       if (error) {
         setError(friendlyError(error));
         return false;
@@ -169,7 +188,7 @@ export function useOrRoom(id: string) {
     await supabase.from(TABLE).update({ changes: [] }).eq("id", id);
   }, [id]);
 
-  return { room, loading, error, saveTimetable, saveAssignments, clearChanges };
+  return { room, loading, error, saveTimetable, saveExtras, saveClinics, clearChanges };
 }
 
 export type { SectionId };

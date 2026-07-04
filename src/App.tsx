@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { HomePage } from "@/pages/HomePage";
 import { SchedulePage } from "@/pages/SchedulePage";
 import { BoardPage } from "@/pages/BoardPage";
@@ -105,6 +105,17 @@ function PushButton() {
   )
 }
 
+/** 수술 시간표 쪽은 넓은 화면(웹)에서 여러 날짜가 한눈에 보이도록 컨테이너를 넓힌다 */
+const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { pathname } = useLocation();
+  const wide = pathname.startsWith("/or-schedule");
+  return (
+    <div className={`${wide ? "max-w-screen-2xl" : "max-w-2xl"} w-full mx-auto px-5 pt-8 pb-8`}>
+      {children}
+    </div>
+  );
+};
+
 export const App: React.FC = () => {
   const { isDark, isBlossom, isBaseball, toggle: toggleDark, toggleBlossom, toggleBaseball } = useTheme();
   const commonProps = { isDark, onToggleDark: toggleDark };
@@ -114,7 +125,7 @@ export const App: React.FC = () => {
       <ToastProvider>
         <BrowserRouter>
           <div className="min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-[#0c1220]">
-            <div className="max-w-2xl w-full mx-auto px-5 pt-8 pb-8">
+            <Shell>
               <SupabaseBanner />
               <Routes>
                 <Route path="/" element={<HomePage {...commonProps} />} />
@@ -130,7 +141,7 @@ export const App: React.FC = () => {
                 <Route path="/or-schedule/room/:id" element={<OrRoomPage {...commonProps} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
-            </div>
+            </Shell>
             {isBlossom && <CherryBlossom />}
           </div>
           <PushButton />
