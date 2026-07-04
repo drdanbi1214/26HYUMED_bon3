@@ -2,8 +2,6 @@ import ExcelJS from "exceljs";
 import {
   OrCase,
   SectionGrid,
-  SectionId,
-  SECTION_LABELS,
   SLOT_MIN,
   caseText,
   fmtDateHeader,
@@ -133,12 +131,12 @@ const BORDER: Partial<ExcelJS.Borders> = {
 };
 
 export async function exportExcel(
-  sections: { id: SectionId; grid: SectionGrid }[],
+  sheets: { sheetName: string; title: string; grid: SectionGrid }[],
 ): Promise<Blob> {
   const wb = new ExcelJS.Workbook();
 
-  for (const { id, grid } of sections) {
-    const ws = wb.addWorksheet(`Section ${id}`);
+  for (const { sheetName, title: titleText, grid } of sheets) {
+    const ws = wb.addWorksheet(sheetName);
     const slots: number[] = [];
     for (let t = grid.startMin; t < grid.endMin; t += SLOT_MIN) slots.push(t);
     const totalLanes = grid.days.reduce((s, d) => s + d.lanes.length, 0);
@@ -146,7 +144,7 @@ export async function exportExcel(
 
     ws.mergeCells(1, 1, 1, lastCol);
     const title = ws.getCell(1, 1);
-    title.value = `${SECTION_LABELS[id]} 수술 시간표`;
+    title.value = `${titleText} 수술 시간표`;
     title.font = { bold: true, size: 12 };
     title.alignment = { horizontal: "center", vertical: "middle" };
     ws.getRow(1).height = 22;

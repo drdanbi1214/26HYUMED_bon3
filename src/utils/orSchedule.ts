@@ -15,15 +15,19 @@ export interface OrCase {
 
 export type SectionId = 1 | 2;
 
+/** 시간표 보기: 외과서울1/2는 교수 명단으로 필터, "all"(기타)은 전체 수술 표시 */
+export type ViewId = SectionId | "all";
+
 /** 섹션별 담당 교수. 어느 쪽 명단에도 없는 집도의는 두 섹션 모두에 표시한다. */
 export const SECTION_PROFS: Record<SectionId, string[]> = {
   1: ["안병규", "박성실", "최지윤", "하태경", "이주희"],
   2: ["정민성", "차치환", "박신정", "이경근", "최동호", "김경식", "정윤경", "이준선", "손준혁"],
 };
 
-export const SECTION_LABELS: Record<SectionId, string> = {
-  1: "Section 1 (LGI·Vas·UGI)",
-  2: "Section 2 (Breast·Endo·HBP·SP)",
+export const VIEW_LABELS: Record<ViewId, string> = {
+  1: "외과서울1 (LGI·Vas·UGI)",
+  2: "외과서울2 (Breast·Endo·HBP·SP)",
+  all: "기타 (전체 수술)",
 };
 
 export function splitBySection(cases: OrCase[]): Record<SectionId, OrCase[]> {

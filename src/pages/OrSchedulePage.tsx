@@ -4,8 +4,8 @@ import { Header } from "@/components/layout/Header";
 import {
   OrCase,
   SectionGrid,
-  SectionId,
-  SECTION_LABELS,
+  ViewId,
+  VIEW_LABELS,
   SLOT_MIN,
   buildGrid,
   fmtDateHeader,
@@ -21,8 +21,8 @@ interface OrSchedulePageProps {
 }
 
 /**
- * 수술 시간표: 배정 엑셀(시트3 형식)을 올리면
- * Section 1/2 시간표를 그려주고 엑셀로도 내려받게 해준다.
+ * 수술 시간표: 배정 엑셀(시트3 형식)을 올리면 외과서울1/2·기타(전체) 중
+ * 볼 시간표를 고르게 하고, 엑셀로도 내려받게 해준다.
  * exceljs가 무거워서 파싱/다운로드 모듈(orExcel)은 필요할 때 lazy import.
  */
 export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggleDark }) => {
@@ -33,12 +33,16 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const [section, setSection] = useState<SectionId>(1);
+  const [view, setView] = useState<ViewId | null>(null);
 
   const grids = useMemo(() => {
     if (!cases) return null;
     const split = splitBySection(cases);
-    return { 1: buildGrid(split[1]), 2: buildGrid(split[2]) } as Record<SectionId, SectionGrid>;
+    return {
+      1: buildGrid(split[1]),
+      2: buildGrid(split[2]),
+      all: buildGrid(cases),
+    } as Record<ViewId, SectionGrid>;
   }, [cases]);
 
   const handleFile = async (f: File | null | undefined) => {
@@ -53,6 +57,7 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
       } else {
         setCases(parsed);
         setFileName(f.name);
+        setView(null); // 파일을 올릴 때마다 선택창부터 다시
       }
     } catch {
       setErr("파일을 읽지 못했어요. .xlsx 파일이 맞는지 확인해주세요.");
@@ -63,24 +68,31 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
   };
 
   const download = async () => {
-    if (!grids || !cases) return;
+    if (!grids || !cases || view == null) return;
     setDownloading(true);
     try {
       const { exportExcel } = await import("@/utils/orExcel");
-      const blob = await exportExcel([
-        { id: 1, grid: grids[1] },
-        { id: 2, grid: grids[2] },
-      ]);
+      // 외과서울1/2를 보고 있으면 두 섹션을 한 파일에, 기타면 전체 한 시트로
+      const blob = await exportExcel(
+        view === "all"
+          ? [{ sheetName: "전체", title: VIEW_LABELS.all, grid: grids.all }]
+          : [
+              { sheetName: "외과서울1", title: VIEW_LABELS[1], grid: grids[1] },
+              { sheetName: "외과서울2", title: VIEW_LABELS[2], grid: grids[2] },
+            ],
+      );
       const firstDate = [...new Set(cases.map(c => c.date))].sort()[0] ?? "";
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `수술시간표_${firstDate}.xlsx`;
+      a.download = `수술시간표_${view === "all" ? "전체" : "외과서울"}_${firstDate}.xlsx`;
       a.click();
       URL.revokeObjectURL(a.href);
     } finally {
       setDownloading(false);
     }
   };
+
+  const VIEW_IDS: ViewId[] = [1, 2, "all"];
 
   return (
     <>
@@ -115,39 +127,68 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
             <p className="text-[11px] text-slate-400 leading-relaxed">
               '수술일자·시작·소요·수술명·집도의' 열이 있는 목록 시트를 읽어서
               <br />
-              집도의에 따라 Section 1/2 시간표로 나눠 보여드려요.
-              <br />
-              명단에 없는 새 교수님 수술은 두 섹션에 모두 표시돼요.
+              외과서울1·외과서울2·기타(전체) 시간표로 보여드려요.
             </p>
           </div>
         )}
 
-        {cases && grids && (
+        {/* 파싱 완료 → 어떤 시간표를 볼지 선택 */}
+        {cases && grids && view == null && (
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-3">
+            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 text-center mb-1">
+              어떤 시간표를 볼까요?
+            </p>
+            {VIEW_IDS.map(id => (
+              <button
+                key={id}
+                onClick={() => setView(id)}
+                className="w-full py-4 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-bold shadow-md active:scale-[0.98] transition-all"
+              >
+                {VIEW_LABELS[id]}
+                <span className="block text-[10px] font-normal opacity-80 mt-0.5">
+                  {id === "all"
+                    ? `올린 수술 ${grids.all.days.reduce((s, d) => s + d.lanes.flat().length, 0)}건 전부 표시`
+                    : `수술 ${grids[id].days.reduce((s, d) => s + d.lanes.flat().length, 0)}건`}
+                </span>
+              </button>
+            ))}
+            <p className="text-[10px] text-slate-400 text-center">
+              기타를 고르면 과 구분 없이 파일의 모든 수술이 표시돼요.
+            </p>
+          </div>
+        )}
+
+        {/* 시간표 화면 */}
+        {cases && grids && view != null && (
           <>
             <div className="flex gap-2">
-              {([1, 2] as SectionId[]).map(id => (
+              {VIEW_IDS.map(id => (
                 <button
                   key={id}
-                  onClick={() => setSection(id)}
-                  className={`flex-1 py-3 rounded-2xl text-xs font-bold border shadow-sm transition-all ${
-                    section === id
+                  onClick={() => setView(id)}
+                  className={`flex-1 py-3 px-1 rounded-2xl text-[11px] font-bold border shadow-sm transition-all ${
+                    view === id
                       ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white border-transparent"
                       : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800"
                   }`}
                 >
-                  {SECTION_LABELS[id]}
+                  {id === "all" ? "기타 (전체)" : `외과서울${id}`}
                 </button>
               ))}
             </div>
 
-            <GridTable grid={grids[section]} />
+            <GridTable grid={grids[view]} />
 
             <button
               onClick={download}
               disabled={downloading}
               className="w-full py-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-sm font-bold shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
             >
-              {downloading ? "만드는 중..." : "⬇️ 엑셀 다운로드 (Section 1 + 2)"}
+              {downloading
+                ? "만드는 중..."
+                : view === "all"
+                  ? "⬇️ 엑셀 다운로드 (전체)"
+                  : "⬇️ 엑셀 다운로드 (외과서울1 + 2)"}
             </button>
           </>
         )}
@@ -182,7 +223,7 @@ const GridTable: React.FC<{ grid: SectionGrid }> = ({ grid }) => {
   if (grid.days.length === 0) {
     return (
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 text-center shadow-sm">
-        <p className="text-sm text-slate-400">이 섹션에 표시할 수술이 없어요.</p>
+        <p className="text-sm text-slate-400">이 시간표에 표시할 수술이 없어요.</p>
       </div>
     );
   }
