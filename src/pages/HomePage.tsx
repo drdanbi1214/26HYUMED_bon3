@@ -58,7 +58,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
 
   return (
     <>
-      <Header title="📋 2026 본3 실습" isDark={isDark} onToggleDark={onToggleDark} />
+      <Header title="🩺 2026 본3 실습" isDark={isDark} onToggleDark={onToggleDark} />
 
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-0">
         {/* 검색 영역 */}

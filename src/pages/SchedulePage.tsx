@@ -101,7 +101,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
   return (
     <>
       <Header
-        title="📋 2026 본3 실습"
+        title="🩺 2026 본3 실습"
         isDark={isDark}
         onToggleDark={onToggleDark}
         onBack={() => navigate("/")}
