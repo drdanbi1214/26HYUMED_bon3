@@ -131,15 +131,19 @@ export const App: React.FC = () => {
   const { isDark, isBlossom, isBaseball, toggle: toggleDark, toggleBlossom, toggleBaseball } = useTheme();
   const commonProps = { isDark, onToggleDark: toggleDark };
 
+  // 테마별 배경 사진: 기본=낮 해변, 다크=밤 해변, 벚꽃/야구 모드는 전용 사진
+  const bgImage = isBaseball
+    ? "bg-[url('/bg-baseball.jpg')]"
+    : isBlossom
+      ? "bg-[url('/bg-blossom.jpg')]"
+      : "bg-[url('/bg-beach.jpg')] dark:bg-[url('/bg-beach-night.jpg')]";
+
   return (
     <BlossomProvider value={{ isBlossom, toggleBlossom, isBaseball, toggleBaseball }}>
       <ToastProvider>
         <BrowserRouter>
-          {/* ── SUMMER BEACH BACKGROUND ── 방학 끝나면 이 div와 public/bg-beach*.jpg 제거 ── */}
-          <div
-            aria-hidden
-            className="fixed inset-0 -z-10 bg-[url('/bg-beach.jpg')] dark:bg-[url('/bg-beach-night.jpg')] bg-cover bg-center"
-          />
+          {/* ── PHOTO BACKGROUND ── 여름 끝나면 기본(해변)만 제거, 벚꽃/야구는 유지 ── */}
+          <div aria-hidden className={`fixed inset-0 -z-10 bg-cover bg-center ${bgImage}`} />
           <div className="min-h-screen transition-colors duration-300">
             <Shell>
               <SupabaseBanner />

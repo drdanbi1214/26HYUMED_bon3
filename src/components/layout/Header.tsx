@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
         )}
         <h1
           onClick={onTitleClick}
-          className="font-han text-3xl text-white tracking-tight cursor-pointer select-none [text-shadow:0_2px_8px_rgba(0,0,0,0.45)]"
+          className="font-han text-3xl text-white tracking-tight cursor-pointer select-none [text-shadow:0_1px_2px_rgba(0,0,0,0.9),0_3px_10px_rgba(0,0,0,0.6)]"
         >
           {title}
         </h1>
