@@ -36,7 +36,9 @@ export const Header: React.FC<HeaderProps> = ({
         )}
         <h1
           onClick={onTitleClick}
-          className="font-han text-3xl text-white tracking-tight cursor-pointer select-none [text-shadow:0_1px_2px_rgba(0,0,0,0.9),0_3px_10px_rgba(0,0,0,0.6)]"
+          className={`font-han text-3xl tracking-tight cursor-pointer select-none [text-shadow:0_1px_2px_rgba(0,0,0,0.9),0_3px_10px_rgba(0,0,0,0.6)] ${
+            isBlossom ? "text-pink-100" : "text-white"
+          }`}
         >
           {title}
         </h1>
