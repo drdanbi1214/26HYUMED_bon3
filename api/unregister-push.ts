@@ -8,7 +8,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!endpoint) return res.status(400).json({ error: 'invalid' })
 
   const supabase = createClient(
-    process.env.SUPABASE_URL!,
+    (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL)!,
     process.env.SUPABASE_SERVICE_KEY!
   )
 

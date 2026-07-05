@@ -18,7 +18,7 @@ const MESSAGES = [
 
 export default async function handler(_req: VercelRequest, res: VercelResponse) {
   const supabase = createClient(
-    process.env.SUPABASE_URL!,
+    (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL)!,
     process.env.SUPABASE_SERVICE_KEY!
   )
 
