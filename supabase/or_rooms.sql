@@ -20,3 +20,9 @@ create policy "or_rooms_all" on or_rooms for all using (true) with check (true);
 alter table or_rooms add column if not exists clinics jsonb not null default '[]'::jsonb;
 alter table or_rooms add column if not exists events jsonb not null default '[]'::jsonb;
 alter table or_rooms add column if not exists memos jsonb not null default '{}'::jsonb;
+
+-- 실시간 반영(다른 사람 변경이 내 화면에 바로 보이게). 이미 추가돼 있으면 그냥 넘어감.
+do $$ begin
+  alter publication supabase_realtime add table or_rooms;
+exception when duplicate_object then null;
+end $$;

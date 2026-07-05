@@ -19,6 +19,9 @@ export interface OrRoom extends OrRoomMeta {
   uploaded_at: string | null;
 }
 
+/** saveShared로 갱신하는 공유 필드 (여러 명이 동시에 만지는 것들) */
+type RoomPatch = Partial<Pick<OrRoom, "assignments" | "memos" | "clinics" | "events">>;
+
 const TABLE = "or_rooms";
 
 function parseView(v: unknown): ViewId | null {
@@ -132,6 +135,22 @@ export function useOrRoom(id: string) {
     };
   }, [id]);
 
+  // 다른 사람이 이 방을 수정하면 내 화면에도 바로 반영 (useChat과 같은 realtime 패턴)
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    const channel = supabase
+      .channel(`or_room_${id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: TABLE, filter: `id=eq.${id}` },
+        payload => setRoom(rowToRoom(payload.new)),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
+
   /** 시간표 저장(첫 업로드/재업로드). 변경 알림과 이어받은 배정·메모를 함께 기록 */
   const saveTimetable = useCallback(
     async (
@@ -158,41 +177,32 @@ export function useOrRoom(id: string) {
     [id],
   );
 
-  /** 배정/메모 부분 업데이트 (한 번의 요청으로) */
-  const saveExtras = useCallback(
-    async (patch: { assignments?: Record<string, string>; memos?: Record<string, string> }): Promise<boolean> => {
-      setRoom(r => (r ? { ...r, ...patch } : r)); // 낙관적 반영
-      const { error } = await supabase.from(TABLE).update(patch).eq("id", id);
-      if (error) {
+  /**
+   * 공유 필드(배정·메모·외래·일정) 저장.
+   * 여러 명이 동시에 편집해도 서로 덮어쓰지 않도록,
+   * 저장 직전 서버 최신값을 다시 읽어 updater를 그 위에 적용한다.
+   */
+  const saveShared = useCallback(
+    async (updater: (fresh: OrRoom) => RoomPatch): Promise<boolean> => {
+      setRoom(r => (r ? { ...r, ...updater(r) } : r)); // 낙관적 반영 (실패 시 아래에서 서버값으로 복구)
+      const { data, error } = await supabase.from(TABLE).select("*").eq("id", id).single();
+      if (error || !data) {
         setError(friendlyError(error));
         return false;
       }
-      return true;
-    },
-    [id],
-  );
-
-  const saveClinics = useCallback(
-    async (clinics: OrClinic[]): Promise<boolean> => {
-      setRoom(r => (r ? { ...r, clinics } : r)); // 낙관적 반영
-      const { error } = await supabase.from(TABLE).update({ clinics }).eq("id", id);
-      if (error) {
-        setError(friendlyError(error));
+      const fresh = rowToRoom(data);
+      const { data: saved, error: e2 } = await supabase
+        .from(TABLE)
+        .update(updater(fresh))
+        .eq("id", id)
+        .select()
+        .single();
+      if (e2 || !saved) {
+        setRoom(fresh); // 낙관적 반영 롤백
+        setError(friendlyError(e2));
         return false;
       }
-      return true;
-    },
-    [id],
-  );
-
-  const saveEvents = useCallback(
-    async (events: OrEvent[]): Promise<boolean> => {
-      setRoom(r => (r ? { ...r, events } : r)); // 낙관적 반영
-      const { error } = await supabase.from(TABLE).update({ events }).eq("id", id);
-      if (error) {
-        setError(friendlyError(error));
-        return false;
-      }
+      setRoom(rowToRoom(saved));
       return true;
     },
     [id],
@@ -203,7 +213,7 @@ export function useOrRoom(id: string) {
     await supabase.from(TABLE).update({ changes: [] }).eq("id", id);
   }, [id]);
 
-  return { room, loading, error, saveTimetable, saveExtras, saveClinics, saveEvents, clearChanges };
+  return { room, loading, error, saveTimetable, saveShared, clearChanges };
 }
 
 export type { SectionId };

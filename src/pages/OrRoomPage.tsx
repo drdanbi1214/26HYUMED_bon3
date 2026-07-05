@@ -80,8 +80,7 @@ function withCode(name: string): string {
 export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { room, loading, error, saveTimetable, saveExtras, saveClinics, saveEvents, clearChanges } =
-    useOrRoom(id ?? "");
+  const { room, loading, error, saveTimetable, saveShared, clearChanges } = useOrRoom(id ?? "");
   const toast = useToast();
 
   // 새로 올려서 아직 저장 안 된 파싱 결과
@@ -254,16 +253,18 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
   const saveAssign = async () => {
     if (!room || !assignTarget || saving) return;
     const k = String(assignTarget.idx);
-    const assignments = { ...room.assignments };
     const name = nameInput.trim();
-    if (name) assignments[k] = name;
-    else delete assignments[k];
-    const memos = { ...room.memos };
     const memo = memoInput.trim();
-    if (memo) memos[k] = memo;
-    else delete memos[k];
     setSaving(true);
-    await saveExtras({ assignments, memos });
+    await saveShared(r => {
+      const assignments = { ...r.assignments };
+      if (name) assignments[k] = name;
+      else delete assignments[k];
+      const memos = { ...r.memos };
+      if (memo) memos[k] = memo;
+      else delete memos[k];
+      return { assignments, memos };
+    });
     setSaving(false);
     setAssignTarget(null);
   };
@@ -272,17 +273,15 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     if (!room || !cProf.trim() || saving) return;
     const date = cDate || dates[0];
     if (!date) return;
+    const clinic = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      date,
+      ampm: cAmpm,
+      prof: cProf.trim(),
+      student: cStudent.trim(),
+    };
     setSaving(true);
-    await saveClinics([
-      ...room.clinics,
-      {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        date,
-        ampm: cAmpm,
-        prof: cProf.trim(),
-        student: cStudent.trim(),
-      },
-    ]);
+    await saveShared(r => ({ clinics: [...r.clinics, clinic] }));
     setSaving(false);
     setCProf("");
     setCStudent("");
@@ -290,7 +289,7 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
 
   const removeClinic = async (clinicId: string) => {
     if (!room) return;
-    await saveClinics(room.clinics.filter(c => c.id !== clinicId));
+    await saveShared(r => ({ clinics: r.clinics.filter(c => c.id !== clinicId) }));
   };
 
   const addEvent = async () => {
@@ -304,18 +303,16 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
       toast.error("끝나는 시간이 시작 시간보다 늦어야 해요");
       return;
     }
+    const event = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, date, start, end, name };
     setSaving(true);
-    await saveEvents([
-      ...room.events,
-      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, date, start, end, name },
-    ]);
+    await saveShared(r => ({ events: [...r.events, event] }));
     setSaving(false);
     setEName("");
   };
 
   const removeEvent = async (eventId: string) => {
     if (!room) return;
-    await saveEvents(room.events.filter(e => e.id !== eventId));
+    await saveShared(r => ({ events: r.events.filter(e => e.id !== eventId) }));
   };
 
   /** 해당 날짜의 학생별 일정을 교수님 보고용 메시지 서식으로 복사 */
