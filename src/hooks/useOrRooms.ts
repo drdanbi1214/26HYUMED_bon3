@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import type { OrCase, OrChange, OrClinic, SectionId, ViewId } from "@/utils/orSchedule";
+import type { OrCase, OrChange, OrClinic, OrEvent, SectionId, ViewId } from "@/utils/orSchedule";
 
 export interface OrRoomMeta {
   id: string;
@@ -14,6 +14,7 @@ export interface OrRoom extends OrRoomMeta {
   assignments: Record<string, string>;
   changes: OrChange[];
   clinics: OrClinic[];
+  events: OrEvent[];
   memos: Record<string, string>;
   uploaded_at: string | null;
 }
@@ -37,6 +38,7 @@ function rowToRoom(d: any): OrRoom {
     assignments: d.assignments ?? {},
     changes: d.changes ?? [],
     clinics: d.clinics ?? [],
+    events: d.events ?? [],
     memos: d.memos ?? {},
     uploaded_at: d.uploaded_at ?? null,
     created_at: d.created_at,
@@ -183,12 +185,25 @@ export function useOrRoom(id: string) {
     [id],
   );
 
+  const saveEvents = useCallback(
+    async (events: OrEvent[]): Promise<boolean> => {
+      setRoom(r => (r ? { ...r, events } : r)); // 낙관적 반영
+      const { error } = await supabase.from(TABLE).update({ events }).eq("id", id);
+      if (error) {
+        setError(friendlyError(error));
+        return false;
+      }
+      return true;
+    },
+    [id],
+  );
+
   const clearChanges = useCallback(async () => {
     setRoom(r => (r ? { ...r, changes: [] } : r));
     await supabase.from(TABLE).update({ changes: [] }).eq("id", id);
   }, [id]);
 
-  return { room, loading, error, saveTimetable, saveExtras, saveClinics, clearChanges };
+  return { room, loading, error, saveTimetable, saveExtras, saveClinics, saveEvents, clearChanges };
 }
 
 export type { SectionId };

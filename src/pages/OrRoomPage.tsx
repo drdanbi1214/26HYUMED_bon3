@@ -9,6 +9,7 @@ import { useOrRoom } from "@/hooks/useOrRooms";
 import {
   AMPM_LABEL,
   OrCase,
+  OrEvent,
   SectionGrid,
   ViewId,
   VIEW_LABELS,
@@ -19,6 +20,7 @@ import {
   fmtHours,
   fmtStamp,
   fmtTime,
+  hmToMin,
   roomLabel,
   splitBySection,
 } from "@/utils/orSchedule";
@@ -50,6 +52,8 @@ interface DashEntry {
 interface DashDate {
   date: string;
   students: { name: string; entries: DashEntry[] }[];
+  /** 학생과 무관한 공용 일정 */
+  events: DashEntry[];
 }
 
 function todayStr(): string {
@@ -76,7 +80,7 @@ function withCode(name: string): string {
 export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { room, loading, error, saveTimetable, saveExtras, saveClinics, clearChanges } =
+  const { room, loading, error, saveTimetable, saveExtras, saveClinics, saveEvents, clearChanges } =
     useOrRoom(id ?? "");
   const toast = useToast();
 
@@ -97,6 +101,13 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
   const [cAmpm, setCAmpm] = useState<"AM" | "PM">("AM");
   const [cProf, setCProf] = useState("");
   const [cStudent, setCStudent] = useState("");
+
+  // 추가 일정(공용) 모달
+  const [eventOpen, setEventOpen] = useState(false);
+  const [eDate, setEDate] = useState("");
+  const [eStart, setEStart] = useState("09:00");
+  const [eEnd, setEEnd] = useState("10:00");
+  const [eName, setEName] = useState("");
 
   const grids = useMemo(() => {
     if (!room?.cases) return null;
@@ -156,19 +167,36 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
       }
     }
 
+    // 공용 일정 (학생과 무관, 날짜별로 따로 모음)
+    const eventsByDate = new Map<string, DashEntry[]>();
+    for (const ev of room.events) {
+      const entry: DashEntry = {
+        key: `e${ev.id}`,
+        sort: ev.start,
+        time: `${fmtTime(ev.start)}-${fmtTime(ev.end)}`,
+        label: ev.name,
+        msgPart: `${ev.name}(${fmtTime(ev.start)}-${fmtTime(ev.end)})`,
+      };
+      const list = eventsByDate.get(ev.date);
+      if (list) list.push(entry);
+      else eventsByDate.set(ev.date, [entry]);
+    }
+
     const toDash = (date: string): DashDate => ({
       date,
-      students: [...byDate.get(date)!.entries()]
+      students: [...(byDate.get(date)?.entries() ?? [])]
         .map(([name, entries]) => ({ name, entries: entries.sort((a, b) => a.sort - b.sort) }))
         .sort((a, b) => a.name.localeCompare(b.name, "ko")),
+      events: (eventsByDate.get(date) ?? []).slice().sort((a, b) => a.sort - b.sort),
     });
     const today = todayStr();
-    const allDates = [...byDate.keys()].sort();
+    // 공용 일정만 있는 날짜도 카드가 뜨도록 날짜를 합집합으로
+    const allDates = [...new Set([...byDate.keys(), ...eventsByDate.keys()])].sort();
     return [
       allDates.filter(d => d >= today).map(toDash),
       allDates.filter(d => d < today).map(toDash),
     ];
-  }, [room?.cases, room?.assignments, room?.clinics]);
+  }, [room?.cases, room?.assignments, room?.clinics, room?.events]);
 
   /** 대시보드 맨 위 요약: 사람별 총 수술시간 [이단비-3h, ...] */
   const hourSummary = useMemo(() => {
@@ -265,6 +293,31 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     await saveClinics(room.clinics.filter(c => c.id !== clinicId));
   };
 
+  const addEvent = async () => {
+    if (!room || saving) return;
+    const name = eName.trim();
+    const date = eDate || dates[0];
+    const start = hmToMin(eStart);
+    const end = hmToMin(eEnd);
+    if (!name || !date || start == null || end == null) return;
+    if (end <= start) {
+      toast.error("끝나는 시간이 시작 시간보다 늦어야 해요");
+      return;
+    }
+    setSaving(true);
+    await saveEvents([
+      ...room.events,
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, date, start, end, name },
+    ]);
+    setSaving(false);
+    setEName("");
+  };
+
+  const removeEvent = async (eventId: string) => {
+    if (!room) return;
+    await saveEvents(room.events.filter(e => e.id !== eventId));
+  };
+
   /** 해당 날짜의 학생별 일정을 교수님 보고용 메시지 서식으로 복사 */
   const copyMessage = async (dash: DashDate) => {
     if (!room) return;
@@ -272,6 +325,9 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     const lines = dash.students.map(
       s => `${withCode(s.name)} - ${s.entries.map(e => e.msgPart).join("/ ")}`,
     );
+    if (dash.events.length > 0) {
+      lines.push(`공용 일정 - ${dash.events.map(e => e.msgPart).join("/ ")}`);
+    }
     const msg = [`${sec} 익일 일정 계획 다음과 같습니다.`, ...lines, "감사합니다 교수님"].join("\n");
     try {
       await navigator.clipboard.writeText(msg);
@@ -361,6 +417,25 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
                 </div>
               </div>
             ))}
+            {dash.events.length > 0 && (
+              <div>
+                <p className={`text-xs font-bold ${muted ? "text-slate-400" : "text-violet-600 dark:text-violet-400"}`}>
+                  📌 공용 일정
+                </p>
+                <div className="space-y-0.5 mt-0.5">
+                  {dash.events.map(e => (
+                    <div
+                      key={e.key}
+                      className={`flex items-start gap-2 text-[11px] ${muted ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`}
+                    >
+                      <span className="shrink-0 w-[14px]" />
+                      <span className="shrink-0 font-semibold whitespace-nowrap">{e.time}</span>
+                      <span className="flex-1 leading-snug break-keep">{e.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       ))}
@@ -386,9 +461,18 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
           <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-xs p-3 rounded-xl">{error}</div>
         )}
 
-        {/* 외래 배정 버튼 (맨 위 오른쪽) */}
+        {/* 외래 배정 · 추가 일정 버튼 (맨 위 오른쪽) */}
         {room?.cases && !showUploader && (
-          <div className="flex justify-end -mb-2">
+          <div className="flex justify-end gap-2 -mb-2">
+            <button
+              onClick={() => {
+                setEDate(dates[0] ?? "");
+                setEventOpen(true);
+              }}
+              className="text-[11px] font-bold text-violet-600 dark:text-violet-400 px-3 py-1.5 rounded-full bg-violet-50 dark:bg-violet-950/40 border border-violet-200 dark:border-violet-800 active:scale-95 transition-all"
+            >
+              📌 추가 일정
+            </button>
             <button
               onClick={() => {
                 setCDate(dates[0] ?? "");
@@ -683,6 +767,93 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
                 onClick={addClinic}
                 disabled={saving || !cProf.trim()}
                 className="flex-1 py-3 rounded-2xl bg-gradient-to-br from-sky-500 to-sky-600 text-white text-xs font-bold shadow-md active:scale-[0.98] transition-all disabled:opacity-50"
+              >
+                {saving ? "저장 중..." : "추가"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 추가 일정(공용) 모달 */}
+      {eventOpen && room && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6"
+          onClick={() => setEventOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl p-6 w-full max-w-sm shadow-xl space-y-3 max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-100">📌 추가 일정</p>
+            <p className="text-[11px] text-slate-400 leading-snug">
+              수술·외래가 아닌 공용 일정을 추가하면 아래 날짜별 일정표에 함께 표시돼요.
+            </p>
+
+            {room.events.length > 0 && (
+              <div className="space-y-1.5">
+                {room.events
+                  .slice()
+                  .sort((a, b) => a.date.localeCompare(b.date) || a.start - b.start)
+                  .map(ev => (
+                    <div
+                      key={ev.id}
+                      className="flex items-center gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-3 py-2"
+                    >
+                      <span className="flex-1 leading-snug">
+                        {fmtDateHeader(ev.date)} {fmtTime(ev.start)}-{fmtTime(ev.end)} · <b>{ev.name}</b>
+                      </span>
+                      <button
+                        onClick={() => removeEvent(ev.id)}
+                        aria-label="추가 일정 삭제"
+                        className="shrink-0 w-6 h-6 rounded-lg text-slate-400 text-xs active:scale-90 transition-all"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            <input
+              type="date"
+              value={eDate}
+              onChange={e => setEDate(e.target.value)}
+              className="w-full px-3 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none text-sm"
+            />
+            <div className="flex items-center gap-2">
+              <input
+                type="time"
+                value={eStart}
+                onChange={e => setEStart(e.target.value)}
+                className="flex-1 px-3 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none text-sm"
+              />
+              <span className="text-slate-400 text-xs font-bold">~</span>
+              <input
+                type="time"
+                value={eEnd}
+                onChange={e => setEEnd(e.target.value)}
+                className="flex-1 px-3 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none text-sm"
+              />
+            </div>
+            <input
+              value={eName}
+              onChange={e => setEName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && addEvent()}
+              placeholder="일정 이름 (예: 팀 미팅, 강의)"
+              className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-violet-500/30 transition-all shadow-sm text-sm"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEventOpen(false)}
+                className="flex-1 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 active:scale-[0.98] transition-all"
+              >
+                닫기
+              </button>
+              <button
+                onClick={addEvent}
+                disabled={saving || !eName.trim()}
+                className="flex-1 py-3 rounded-2xl bg-gradient-to-br from-violet-500 to-violet-600 text-white text-xs font-bold shadow-md active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {saving ? "저장 중..." : "추가"}
               </button>

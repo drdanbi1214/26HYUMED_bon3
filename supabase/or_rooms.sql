@@ -7,6 +7,7 @@ create table if not exists or_rooms (
   assignments jsonb not null default '{}'::jsonb, -- 학생 배정 { "caseIdx": "이름" }
   changes jsonb not null default '[]'::jsonb,   -- 최근 재업로드에서 감지된 변경 알림
   clinics jsonb not null default '[]'::jsonb,   -- 외래 배정 [{date, ampm, prof, student}]
+  events jsonb not null default '[]'::jsonb,    -- 추가(공용) 일정 [{id, date, start, end, name}]
   memos jsonb not null default '{}'::jsonb,     -- 수술별 메모 { "caseIdx": "메모" }
   uploaded_at timestamptz,                      -- 시간표 업로드 시각 ("기준" 표시용)
   created_at timestamptz not null default now()
@@ -15,6 +16,7 @@ create table if not exists or_rooms (
 alter table or_rooms enable row level security;
 create policy "or_rooms_all" on or_rooms for all using (true) with check (true);
 
--- 예전 버전 테이블을 이미 만들었다면 이 두 줄만 실행하면 됨
+-- 예전 버전 테이블을 이미 만들었다면 이 줄들만 실행하면 됨
 alter table or_rooms add column if not exists clinics jsonb not null default '[]'::jsonb;
+alter table or_rooms add column if not exists events jsonb not null default '[]'::jsonb;
 alter table or_rooms add column if not exists memos jsonb not null default '{}'::jsonb;

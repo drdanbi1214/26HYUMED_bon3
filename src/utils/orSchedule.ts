@@ -143,6 +143,32 @@ export function clinicRange(ampm: "AM" | "PM"): { start: number; end: number } {
   return ampm === "AM" ? { start: 9 * 60, end: 12 * 60 } : { start: 13 * 60 + 30, end: 17 * 60 };
 }
 
+// ───────────── 추가 일정 (공용) ─────────────
+
+/** 외래·수술이 아닌 임의의 공용 일정 (자유 시작~끝 시간 + 이름) */
+export interface OrEvent {
+  id: string;
+  date: string; // "2026-07-06"
+  start: number; // 분 (자정 기준)
+  end: number; // 분
+  name: string;
+}
+
+/** "09:30" → 570(분). 형식이 이상하면 null */
+export function hmToMin(hm: string): number | null {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hm.trim());
+  if (!m) return null;
+  const h = +m[1];
+  const min = +m[2];
+  if (h > 23 || min > 59) return null;
+  return h * 60 + min;
+}
+
+/** 570 → "09:30" (input[type=time] 초기값용) */
+export function minToHm(min: number): string {
+  return `${String(Math.floor(min / 60)).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+}
+
 /** 분 → "3h30m" (대시보드 총 수술시간 요약용) */
 export function fmtHours(min: number): string {
   const h = Math.floor(min / 60);
