@@ -28,7 +28,7 @@ export const Header: React.FC<HeaderProps> = ({
         {onBack && (
           <button
             onClick={onBack}
-            className="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 shadow-sm transition-all hover:bg-slate-50 active:scale-90"
+            className="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 shadow-lg shadow-slate-900/20 transition-all hover:bg-slate-50 active:scale-90"
             aria-label="뒤로"
           >
             <Icon><path d="M15 18l-6-6 6-6" /></Icon>
@@ -46,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* BASEBALL FEATURE */}
         <button
           onClick={toggleBaseball}
-          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all ${
+          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-lg shadow-slate-900/20 active:scale-90 transition-all ${
             isBaseball
               ? "border-blue-400 bg-blue-100 dark:bg-blue-900/40 scale-105"
               : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
@@ -59,7 +59,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* CHERRY BLOSSOM FEATURE — remove next button when done */}
         <button
           onClick={toggleBlossom}
-          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all ${
+          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-lg shadow-slate-900/20 active:scale-90 transition-all ${
             isBlossom
               ? "border-pink-300 bg-pink-100 scale-105"
               : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
         <button
           onClick={onToggleDark}
-          className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-lg shadow-sm active:scale-90 transition-all"
+          className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-lg shadow-lg shadow-slate-900/20 active:scale-90 transition-all"
           aria-label="다크모드 토글"
         >
           {isDark ? "☀️" : "🌙"}
