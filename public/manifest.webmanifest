@@ -1,6 +1,6 @@
 {
-  "name": "2026 본3 실습",
-  "short_name": "본3 실습",
+  "name": "본3실습",
+  "short_name": "본3실습",
   "description": "한양의대 본3 실습 스케줄러",
   "start_url": "/",
   "display": "standalone",
