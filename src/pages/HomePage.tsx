@@ -122,7 +122,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => navigate("/mate")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
           >
             <span className="text-xl">{isBaseball ? "⚾" : "👥"}</span>
             <span>구리 메이트</span>
@@ -131,35 +131,35 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             href="https://hyu.u-folio.com/login"
             target="_blank"
             rel="noopener noreferrer"
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
             <span className="text-xl">{isBaseball ? "⚾" : "✏️"}</span>
             <span>유포폴</span>
           </a>
           <button
             onClick={() => navigate("/menu")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
           >
             <span>병원식당메뉴</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🍱"}</span>
           </button>
           <button
             onClick={() => navigate("/who")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
           >
             <span>먼저 돈 사람은?</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🔍"}</span>
           </button>
           <button
             onClick={() => navigate("/prof")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
             <span>교수님 미리뵙기</span>
             <span className="text-xl">{isBaseball ? "⚾" : "👨‍🏫"}</span>
           </button>
           <button
             onClick={() => navigate("/restaurants")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
             <span>맛집인계</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🥄"}</span>
@@ -168,7 +168,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             href="https://map.naver.com/p/directions/14153577.8081099,4523550.9131848/%EA%B5%AC%EB%A6%AC%EC%97%AD%20%EA%B2%BD%EC%9D%98%EC%A4%91%EC%95%99%EC%84%A0,13543572,PLACE_POI/14152317.0592169,4523254.7645331/%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90%EA%B5%AC%EB%A6%AC%EB%B3%91%EC%9B%90,11686929,PLACE_POI/-/transit?c=14.00,0,0,0,dh"
             target="_blank"
             rel="noopener noreferrer"
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-2 active:scale-95 transition-all text-center px-2"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-2 active:scale-95 transition-all text-center px-2"
           >
             <span className="text-[13px] leading-tight">
               구리병원가는
@@ -179,14 +179,14 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
           </a>
           <button
             onClick={() => navigate("/board")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
           >
             <span className="text-xl">{isBaseball ? "⚾" : "💬"}</span>
             <span>익명 게시판</span>
           </button>
           <button
             onClick={() => navigate("/or-schedule")}
-            className="py-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
             <span>수술 시간표</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🏥"}</span>
