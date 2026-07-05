@@ -10,7 +10,7 @@ import {
   fmtDateHeader,
   fmtTime,
   roomLabel,
-  surgeonColor,
+  studentColors,
 } from "@/utils/orSchedule";
 
 type SlotCell = { oc: OrCase; span: number } | "covered" | null;
@@ -41,6 +41,9 @@ interface OrGridTableProps {
 export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, memos, clinics, events, onCaseClick }) => {
   const slots: number[] = [];
   for (let t = grid.startMin; t < grid.endMin; t += SLOT_MIN) slots.push(t);
+
+  // 미배정 = 연회색, 배정 = 학생별 파스텔색 (여러 명이면 첫 학생 색)
+  const studentColorMap = studentColors(assignments ?? {});
 
   const clinicsByDate = new Map<string, OrClinic[]>();
   for (const c of clinics ?? []) {
@@ -182,6 +185,10 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                   }
                   const { oc, span } = cell;
                   const assigned = assignments?.[String(oc.idx)];
+                  const firstStudent = assigned?.split(/[,·/]+/)[0]?.trim();
+                  const cellColor = firstStudent
+                    ? studentColorMap.get(firstStudent) ?? "F1F5F9"
+                    : "F1F5F9"; // 미배정은 연회색
                   return (
                     <td
                       key={key}
@@ -190,9 +197,9 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                       className={`align-top p-0${dayEdge}${pmTop}${
                         onCaseClick ? " cursor-pointer active:opacity-70 transition-opacity" : ""
                       }`}
-                      style={{ minWidth: 106, backgroundColor: `#${surgeonColor(oc.surgeon)}`, boxShadow: caseShadow }}
+                      style={{ minWidth: 106, backgroundColor: `#${cellColor}`, boxShadow: caseShadow }}
                     >
-                      <div className="p-1.5 space-y-0.5">
+                      <div className={`p-1.5 space-y-0.5${assigned ? "" : " opacity-55"}`}>
                         <div className="text-[9px] font-semibold text-slate-500">
                           {fmtTime(oc.startMin)}~{fmtTime(oc.startMin + oc.durMin)} · {roomLabel(oc.room)}
                         </div>

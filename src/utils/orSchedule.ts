@@ -113,6 +113,19 @@ export function surgeonColor(surgeon: string): string {
   return PALETTE[h % PALETTE.length];
 }
 
+/**
+ * 배정된 학생별 파스텔 색 (RGB 6자리). 이름 가나다순으로 팔레트를 순서대로 배정해서
+ * 같은 방 안에서는 색이 겹치지 않는다 (팔레트 12색 초과 시 순환).
+ */
+export function studentColors(assignments: Record<string, string>): Map<string, string> {
+  const names = [
+    ...new Set(
+      Object.values(assignments).flatMap(s => s.split(/[,·/]+/).map(x => x.trim()).filter(Boolean)),
+    ),
+  ].sort((a, b) => a.localeCompare(b, "ko"));
+  return new Map(names.map((n, i) => [n, PALETTE[i % PALETTE.length]]));
+}
+
 export function fmtTime(min: number): string {
   return `${Math.floor(min / 60)}:${String(min % 60).padStart(2, "0")}`;
 }
