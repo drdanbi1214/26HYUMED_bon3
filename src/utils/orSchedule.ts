@@ -60,14 +60,21 @@ export interface SectionGrid {
   endMin: number;
 }
 
-/** extraDates: 수술이 없어도 열을 만들 날짜 (외래만 있는 날 등) */
-export function buildGrid(cases: OrCase[], extraDates: string[] = []): SectionGrid {
-  const dates = [...new Set([...cases.map(c => c.date), ...extraDates])].sort();
+/**
+ * extraDates: 수술이 없어도 열을 만들 날짜 (외래만 있는 날 등)
+ * events: 공용 일정 — 날짜 열이 생기고, 그리드 시간 범위도 일정에 맞춰 넓힌다
+ */
+export function buildGrid(cases: OrCase[], extraDates: string[] = [], events: OrEvent[] = []): SectionGrid {
+  const dates = [...new Set([...cases.map(c => c.date), ...extraDates, ...events.map(e => e.date)])].sort();
   let startMin = 8 * 60;
   let endMin = 17 * 60;
   for (const c of cases) {
     startMin = Math.min(startMin, Math.floor(c.startMin / SLOT_MIN) * SLOT_MIN);
     endMin = Math.max(endMin, Math.ceil((c.startMin + c.durMin) / SLOT_MIN) * SLOT_MIN);
+  }
+  for (const e of events) {
+    startMin = Math.min(startMin, Math.floor(e.start / SLOT_MIN) * SLOT_MIN);
+    endMin = Math.max(endMin, Math.ceil(e.end / SLOT_MIN) * SLOT_MIN);
   }
   const days = dates.map(date => {
     const dayCases = cases

@@ -3,6 +3,7 @@ import {
   AMPM_LABEL,
   OrCase,
   OrClinic,
+  OrEvent,
   SectionGrid,
   SLOT_MIN,
   clinicRange,
@@ -21,6 +22,8 @@ interface ClinicBlock {
 }
 type ClinicCell = { block: ClinicBlock } | "covered" | null;
 
+type EventCell = { block: { span: number; item: OrEvent } } | "covered" | null;
+
 interface OrGridTableProps {
   grid: SectionGrid;
   /** 학생 배정 (OrCase.idx → 이름). 있으면 블록에 표시 */
@@ -29,11 +32,13 @@ interface OrGridTableProps {
   memos?: Record<string, string>;
   /** 외래 배정. 해당 날짜에 외래 전용 열이 추가된다 */
   clinics?: OrClinic[];
+  /** 공용 일정. 해당 날짜에 일정 전용 열이 추가된다 (겹치면 열이 늘어난다) */
+  events?: OrEvent[];
   /** 있으면 수술 블록을 탭해서 배정할 수 있다 */
   onCaseClick?: (c: OrCase) => void;
 }
 
-export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, memos, clinics, onCaseClick }) => {
+export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, memos, clinics, events, onCaseClick }) => {
   const slots: number[] = [];
   for (let t = grid.startMin; t < grid.endMin; t += SLOT_MIN) slots.push(t);
 
@@ -61,9 +66,47 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
     return colCells;
   };
 
+  const eventsByDate = new Map<string, OrEvent[]>();
+  for (const ev of events ?? []) {
+    const list = eventsByDate.get(ev.date);
+    if (list) list.push(ev);
+    else eventsByDate.set(ev.date, [ev]);
+  }
+
+  /** 해당 날짜의 일정 열들. 시간이 겹치는 일정은 레인(열)을 나눠 나란히 둔다 */
+  const buildEventCols = (date: string): EventCell[][] | null => {
+    const list = eventsByDate.get(date);
+    if (!list?.length) return null;
+    const sorted = list.slice().sort((a, b) => a.start - b.start || a.end - b.end);
+    const lanes: OrEvent[][] = [];
+    const laneEnds: number[] = [];
+    for (const ev of sorted) {
+      let i = laneEnds.findIndex(end => end <= ev.start);
+      if (i === -1) {
+        lanes.push([]);
+        laneEnds.push(0);
+        i = lanes.length - 1;
+      }
+      lanes[i].push(ev);
+      laneEnds[i] = ev.end;
+    }
+    return lanes.map(lane => {
+      const colCells: EventCell[] = Array(slots.length).fill(null);
+      for (const ev of lane) {
+        const s = Math.max(0, Math.floor((Math.max(ev.start, grid.startMin) - grid.startMin) / SLOT_MIN));
+        const e = Math.min(slots.length, Math.ceil((Math.min(ev.end, grid.endMin) - grid.startMin) / SLOT_MIN));
+        if (e <= s) continue;
+        colCells[s] = { block: { span: e - s, item: ev } };
+        for (let i = s + 1; i < e; i++) colCells[i] = "covered";
+      }
+      return colCells;
+    });
+  };
+
   const dayCells = grid.days.map(day => ({
     date: day.date,
     clinicCol: buildClinicCol(day.date),
+    eventCols: buildEventCols(day.date),
     cells: day.lanes.map(lane => {
       const colCells: SlotCell[] = Array(slots.length).fill(null);
       for (const oc of lane) {
@@ -98,7 +141,7 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
             {dayCells.map((d, di) => (
               <th
                 key={d.date}
-                colSpan={d.cells.length + (d.clinicCol ? 1 : 0)}
+                colSpan={d.cells.length + (d.clinicCol ? 1 : 0) + (d.eventCols?.length ?? 0)}
                 className={`bg-slate-100 dark:bg-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-300 px-2 py-2 border border-slate-200 dark:border-slate-700 whitespace-nowrap ${
                   di > 0 ? "border-l-2 border-l-slate-400 dark:border-l-slate-500" : ""
                 }`}
@@ -214,6 +257,46 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                       </td>,
                     );
                   }
+                }
+
+                // 공용 일정 열 (외래 열 오른쪽, 겹치면 여러 열)
+                if (d.eventCols) {
+                  d.eventCols.forEach((col, ci) => {
+                    const cell = col[ri];
+                    const key = `${d.date}-event-${ci}`;
+                    if (cell === "covered") {
+                      laneTds.push(null);
+                      return;
+                    }
+                    if (cell === null) {
+                      laneTds.push(
+                        <td
+                          key={key}
+                          className={`border border-slate-100 dark:border-slate-800${pmTop}`}
+                          style={{ minWidth: 88 }}
+                        />,
+                      );
+                      return;
+                    }
+                    const ev = cell.block.item;
+                    laneTds.push(
+                      <td
+                        key={key}
+                        rowSpan={cell.block.span}
+                        className={`align-top p-0${pmTop}`}
+                        style={{ minWidth: 88, backgroundColor: "#EDE9FE", boxShadow: caseShadow }}
+                      >
+                        <div className="p-1.5 space-y-0.5">
+                          <div className="text-[9px] font-bold text-violet-600">
+                            📌 {fmtTime(ev.start)}~{fmtTime(ev.end)}
+                          </div>
+                          <div className="text-[11px] font-bold text-slate-800 leading-tight break-keep">
+                            {ev.name}
+                          </div>
+                        </div>
+                      </td>,
+                    );
+                  });
                 }
                 return laneTds;
               })}

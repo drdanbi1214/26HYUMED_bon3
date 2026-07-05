@@ -115,11 +115,11 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     const clinicDates = room.clinics.map(c => c.date);
     const split = splitBySection(room.cases);
     return {
-      1: buildGrid(split[1], clinicDates),
-      2: buildGrid(split[2], clinicDates),
-      all: buildGrid(room.cases, clinicDates),
+      1: buildGrid(split[1], clinicDates, room.events),
+      2: buildGrid(split[2], clinicDates, room.events),
+      all: buildGrid(room.cases, clinicDates, room.events),
     } as Record<ViewId, SectionGrid>;
-  }, [room?.cases, room?.clinics]);
+  }, [room?.cases, room?.clinics, room?.events]);
 
   const dates = useMemo(
     () => (room?.cases ? [...new Set(room.cases.map(c => c.date))].sort() : []),
@@ -597,6 +597,7 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
               assignments={room.assignments}
               memos={room.memos}
               clinics={room.clinics}
+              events={room.events}
               onCaseClick={openAssign}
             />
 
