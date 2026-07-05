@@ -43,19 +43,30 @@ function PushButton() {
     setStatus('loading')
     try {
       const reg = await navigator.serviceWorker.register('/sw.js')
+      await navigator.serviceWorker.ready
       const permission = await Notification.requestPermission()
       if (permission !== 'granted') { setStatus('denied'); return }
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       })
-      await fetch('/api/register-push', {
+      const r = await fetch('/api/register-push', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sub.toJSON()),
       })
+      if (!r.ok) {
+        const d = await r.json().catch(() => null)
+        throw new Error(d?.error || `서버 등록 실패 (${r.status})`)
+      }
       setStatus('subscribed')
-    } catch {
+      // 설정이 실제로 동작하는지 바로 확인시켜주는 로컬 알림
+      await reg.showNotification('일실기 알림 설정 완료 ✅', {
+        body: '매일 밤 11시 30분에 알림이 올 거예요!',
+        icon: '/icons/icon-192.png',
+      }).catch(() => {})
+    } catch (e) {
+      alert(`알림 설정에 실패했어요:\n${e instanceof Error ? e.message : e}`)
       setStatus('idle')
     }
   }

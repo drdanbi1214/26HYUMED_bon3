@@ -8,7 +8,7 @@ import type { Assignment, SearchResult, WeekData } from "@/types";
  *
  * @param g         조 알파벳 (예: "C")
  * @param n         조 내 번호 (예: 3)
- * @param nameHint  표시할 이름. 생략 시 MEMBERS의 첫 번째 이름 사용.
+ * @param nameHint  표시할 이름. 생략 시 MEMBERS의 이름 전체 사용 (2명이면 둘 다).
  * @returns         SearchResult. 조/번호가 유효하지 않으면 null.
  */
 export function buildSearchResult(
@@ -19,7 +19,7 @@ export function buildSearchResult(
   const rawNames = MEMBERS[g]?.[n];
   if (!rawNames) return null;
 
-  const displayName = nameHint || rawNames.split(",")[0].trim();
+  const displayName = nameHint || rawNames.split(",").map(s => s.trim()).join(", ");
   const weeks: WeekData[] = [];
   let sCount = 0;
   let gCount = 0;
@@ -74,14 +74,19 @@ export function resolveSearchQuery(query: string): ResolveResult {
     return { ok: true, g: cm[1], n: +cm[2] };
   }
 
+  // 한 번호에 2명("이주영, 문정우")이면 누구로 검색해도 둘 다 표시되도록 명단 전체를 이름으로 쓴다
+  const fullNames = (g: string, n: number) =>
+    MEMBERS[g][n].split(",").map(s => s.trim()).join(", ");
+
   const f = NAME_LOOKUP[v];
   if (f) {
-    return { ok: true, g: f.group, n: f.number, name: v };
+    return { ok: true, g: f.group, n: f.number, name: fullNames(f.group, f.number) };
   }
 
   const ms = Object.keys(NAME_LOOKUP).filter(n => n.includes(v));
   if (ms.length === 1) {
-    return { ok: true, g: NAME_LOOKUP[ms[0]].group, n: NAME_LOOKUP[ms[0]].number, name: ms[0] };
+    const m1 = NAME_LOOKUP[ms[0]];
+    return { ok: true, g: m1.group, n: m1.number, name: fullNames(m1.group, m1.number) };
   }
   if (ms.length > 1) {
     return { ok: false, candidates: ms };

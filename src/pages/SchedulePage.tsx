@@ -43,6 +43,45 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
   const cur = res.weeks.find(w => w.w === curNum);
   const nxt = res.weeks.find(w => curNum !== null && w.w === curNum + 1);
 
+  /** 36주 실습 일정을 .ics로 만들어 아이폰/구글 캘린더에 바로 넣을 수 있게 다운로드 */
+  const downloadICS = () => {
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const ymd = (d: Date) => `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+    const esc = (s: string) => s.replace(/([,;\\])/g, "\\$1");
+    const events = res.weeks
+      .filter(w => w.a.length > 0)
+      .map(w => {
+        const end = new Date(w.d.e);
+        end.setDate(end.getDate() + 1); // DTEND는 마지막 날의 다음 날 (exclusive)
+        const dept = w.a.map(x => x.dept).join(" / ");
+        const co = w.a.flatMap(x => x.co).join(", ");
+        return [
+          "BEGIN:VEVENT",
+          `UID:bon3-${res.g}${res.n}-w${w.w}@26hyumed`,
+          `DTSTART;VALUE=DATE:${ymd(w.d.s)}`,
+          `DTEND;VALUE=DATE:${ymd(end)}`,
+          `SUMMARY:${esc(`[실습] ${dept}`)}`,
+          `DESCRIPTION:${esc(`${w.w}주차${co ? ` · 공동실습: ${co}` : ""}`)}`,
+          "END:VEVENT",
+        ].join("\r\n");
+      });
+    const ics = [
+      "BEGIN:VCALENDAR",
+      "VERSION:2.0",
+      "PRODID:-//26HYUMED bon3//KR",
+      "CALSCALE:GREGORIAN",
+      ...events,
+      "END:VCALENDAR",
+    ].join("\r\n");
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${res.g}${res.n}_실습일정.ics`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const downloadCSV = () => {
     let csv = "\ufeff";
     csv += "주차,날짜,실습과,공동실습생\n";
@@ -121,6 +160,13 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
             </a>
           </div>
         </div>
+
+        <button
+          onClick={downloadICS}
+          className="w-full py-3.5 rounded-2xl border border-blue-200 dark:border-blue-900 bg-blue-50/60 dark:bg-blue-950/20 text-xs font-bold text-blue-600 dark:text-blue-400 active:scale-[0.98] transition-all"
+        >
+          📅 내 캘린더에 일정 넣기 (아이폰/구글 캘린더)
+        </button>
 
         <div className="space-y-3">
           {res.weeks.map(week => (

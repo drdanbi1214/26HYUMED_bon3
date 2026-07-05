@@ -3,8 +3,8 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(data.title || '일실기 알림', {
       body: data.body,
-      icon: '/favicon.ico',
-      badge: '/favicon.ico',
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
       data: { url: self.location.origin },
     })
   )
