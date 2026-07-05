@@ -42,8 +42,8 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
   const slots: number[] = [];
   for (let t = grid.startMin; t < grid.endMin; t += SLOT_MIN) slots.push(t);
 
-  // 미배정 = 연회색, 배정 = 학생별 파스텔색 (여러 명이면 첫 학생 색)
-  const studentColorMap = studentColors(assignments ?? {});
+  // 미배정 = 연회색, 배정 = 학생별 파스텔색 (여러 명이면 첫 학생 색). 외래 배정 학생도 같은 색을 공유
+  const studentColorMap = studentColors(assignments ?? {}, (clinics ?? []).map(c => c.student));
 
   const clinicsByDate = new Map<string, OrClinic[]>();
   for (const c of clinics ?? []) {
@@ -239,14 +239,26 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                     );
                   } else {
                     const { block } = cell;
+                    // 블록 안 외래가 전부 같은 학생이면 그 학생 색, 미배정만 있으면 연회색, 섞이면 기본 하늘색
+                    const clinicStudents = [
+                      ...new Set(
+                        block.items.map(it => it.student.split(/[,·/]+/)[0]?.trim()).filter(Boolean),
+                      ),
+                    ];
+                    const clinicColor =
+                      clinicStudents.length === 1
+                        ? studentColorMap.get(clinicStudents[0]) ?? "E0F2FE"
+                        : clinicStudents.length === 0
+                          ? "F1F5F9"
+                          : "E0F2FE";
                     laneTds.push(
                       <td
                         key={key}
                         rowSpan={block.span}
                         className={`align-top p-0${pmTop}`}
-                        style={{ minWidth: 88, backgroundColor: "#E0F2FE", boxShadow: caseShadow }}
+                        style={{ minWidth: 88, backgroundColor: `#${clinicColor}`, boxShadow: caseShadow }}
                       >
-                        <div className="p-1.5 space-y-1">
+                        <div className={`p-1.5 space-y-1${clinicStudents.length === 0 ? " opacity-55" : ""}`}>
                           <div className="text-[9px] font-bold text-sky-600">
                             🩺 외래 · {AMPM_LABEL[block.ampm]}
                           </div>

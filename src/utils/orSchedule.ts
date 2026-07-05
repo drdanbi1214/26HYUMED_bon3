@@ -116,11 +116,14 @@ export function surgeonColor(surgeon: string): string {
 /**
  * 배정된 학생별 파스텔 색 (RGB 6자리). 이름 가나다순으로 팔레트를 순서대로 배정해서
  * 같은 방 안에서는 색이 겹치지 않는다 (팔레트 12색 초과 시 순환).
+ * extra: 수술 배정 외에 색이 필요한 이름들 (외래 배정 학생 등)
  */
-export function studentColors(assignments: Record<string, string>): Map<string, string> {
+export function studentColors(assignments: Record<string, string>, extra: string[] = []): Map<string, string> {
   const names = [
     ...new Set(
-      Object.values(assignments).flatMap(s => s.split(/[,·/]+/).map(x => x.trim()).filter(Boolean)),
+      [...Object.values(assignments), ...extra].flatMap(s =>
+        s.split(/[,·/]+/).map(x => x.trim()).filter(Boolean),
+      ),
     ),
   ].sort((a, b) => a.localeCompare(b, "ko"));
   return new Map(names.map((n, i) => [n, PALETTE[i % PALETTE.length]]));
