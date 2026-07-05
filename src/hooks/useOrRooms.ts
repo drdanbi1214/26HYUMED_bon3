@@ -86,8 +86,12 @@ export function useOrRooms() {
     fetch();
   }, [fetch]);
 
-  const create = useCallback(async (name: string): Promise<OrRoomMeta | null> => {
-    const { data, error } = await supabase.from(TABLE).insert({ name }).select().single();
+  const create = useCallback(async (name: string, deletePw: string): Promise<OrRoomMeta | null> => {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .insert({ name, delete_pw: deletePw })
+      .select()
+      .single();
     if (error || !data) {
       setError(friendlyError(error));
       return null;
@@ -97,14 +101,21 @@ export function useOrRooms() {
     return meta;
   }, []);
 
-  const remove = useCallback(async (id: string): Promise<boolean> => {
-    const { error } = await supabase.from(TABLE).delete().eq("id", id);
+  /** 삭제 비밀번호가 맞아야만 지워진다. "ok" | "wrong"(비번 불일치) | "error" */
+  const remove = useCallback(async (id: string, pw: string): Promise<"ok" | "wrong" | "error"> => {
+    const { data, error } = await supabase
+      .from(TABLE)
+      .delete()
+      .eq("id", id)
+      .eq("delete_pw", pw)
+      .select("id");
     if (error) {
       setError(friendlyError(error));
-      return false;
+      return "error";
     }
+    if (!data?.length) return "wrong"; // 비번이 안 맞으면 아무것도 안 지워짐
     setRooms(prev => prev.filter(r => r.id !== id));
-    return true;
+    return "ok";
   }, []);
 
   return { rooms, loading, error, fetch, create, remove };

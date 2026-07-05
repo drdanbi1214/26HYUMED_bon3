@@ -35,6 +35,7 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
 
   const roomsApi = useOrRooms();
   const [newRoomName, setNewRoomName] = useState("");
+  const [newRoomPw, setNewRoomPw] = useState("");
   const [creatingRoom, setCreatingRoom] = useState(false);
 
   const grids = useMemo(() => {
@@ -49,19 +50,25 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
 
   const createRoom = async () => {
     const name = newRoomName.trim();
-    if (!name || creatingRoom) return;
+    const pw = newRoomPw.trim();
+    if (!name || !pw || creatingRoom) return;
     setCreatingRoom(true);
-    const meta = await roomsApi.create(name);
+    const meta = await roomsApi.create(name, pw);
     setCreatingRoom(false);
     if (meta) {
       setNewRoomName("");
+      setNewRoomPw("");
       navigate(`/or-schedule/room/${meta.id}`);
     }
   };
 
   const deleteRoom = async (id: string, name: string) => {
-    if (!window.confirm(`'${name}' 방을 삭제할까요? 저장된 시간표와 배정이 모두 지워져요.`)) return;
-    await roomsApi.remove(id);
+    const pw = window.prompt(
+      `'${name}' 방을 삭제하려면 삭제 비밀번호를 입력하세요.\n저장된 시간표와 배정이 모두 지워져요.`,
+    );
+    if (pw == null || !pw.trim()) return;
+    const result = await roomsApi.remove(id, pw.trim());
+    if (result === "wrong") window.alert("삭제 비밀번호가 틀렸어요.");
   };
 
   const download = async () => {
@@ -128,21 +135,29 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
                 아직 방이 없어요. 방을 만들면 시간표와 학생 배정을 저장하고 링크로 같이 볼 수 있어요.
               </p>
             )}
-            <div className="flex gap-2">
+            <div className="space-y-2">
               <input
                 value={newRoomName}
                 onChange={e => setNewRoomName(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && createRoom()}
                 placeholder="새 방 이름 (예: 7월 1주 외과서울)"
-                className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-sm text-sm"
+                className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-sm text-sm"
               />
-              <button
-                onClick={createRoom}
-                disabled={creatingRoom || !newRoomName.trim()}
-                className="px-5 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-bold shadow-md active:scale-95 transition-all disabled:opacity-50"
-              >
-                {creatingRoom ? "..." : "만들기"}
-              </button>
+              <div className="flex gap-2">
+                <input
+                  value={newRoomPw}
+                  onChange={e => setNewRoomPw(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && createRoom()}
+                  placeholder="삭제 비밀번호 (방 지울 때 필요)"
+                  className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-sm text-sm"
+                />
+                <button
+                  onClick={createRoom}
+                  disabled={creatingRoom || !newRoomName.trim() || !newRoomPw.trim()}
+                  className="px-5 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-sm font-bold shadow-md active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {creatingRoom ? "..." : "만들기"}
+                </button>
+              </div>
             </div>
           </div>
         )}

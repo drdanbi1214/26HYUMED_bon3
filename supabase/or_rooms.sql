@@ -9,6 +9,7 @@ create table if not exists or_rooms (
   clinics jsonb not null default '[]'::jsonb,   -- 외래 배정 [{date, ampm, prof, student}]
   events jsonb not null default '[]'::jsonb,    -- 추가(공용) 일정 [{id, date, start, end, name}]
   memos jsonb not null default '{}'::jsonb,     -- 수술별 메모 { "caseIdx": "메모" }
+  delete_pw text not null default '1234',       -- 방 삭제용 비밀번호
   uploaded_at timestamptz,                      -- 시간표 업로드 시각 ("기준" 표시용)
   created_at timestamptz not null default now()
 );
@@ -20,6 +21,8 @@ create policy "or_rooms_all" on or_rooms for all using (true) with check (true);
 alter table or_rooms add column if not exists clinics jsonb not null default '[]'::jsonb;
 alter table or_rooms add column if not exists events jsonb not null default '[]'::jsonb;
 alter table or_rooms add column if not exists memos jsonb not null default '{}'::jsonb;
+-- 방 삭제용 비밀번호. 기존 방들은 일괄 '1234'
+alter table or_rooms add column if not exists delete_pw text not null default '1234';
 
 -- 실시간 반영(다른 사람 변경이 내 화면에 바로 보이게). 이미 추가돼 있으면 그냥 넘어감.
 do $$ begin
