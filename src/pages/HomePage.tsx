@@ -69,7 +69,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && doSearch()}
               placeholder="조번호(C3) 또는 이름"
-              className="flex-1 px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-sm"
+              className="flex-1 px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-xl shadow-slate-900/25"
             />
             <button
               onClick={doSearch}
@@ -102,7 +102,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
         {isBaseball ? (
           <BaseballScoreCard />
         ) : (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900/50 dark:to-indigo-950/20 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-6 flex justify-between items-center shadow-sm">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900/50 dark:to-indigo-950/20 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-6 flex justify-between items-center shadow-xl shadow-slate-900/25">
             <div>
               <div className="text-xs font-bold text-slate-400 mb-1">여름방학!!!!!!!!ㅠㅠ</div>
               <div className="text-3xl font-black text-blue-600 dark:text-blue-400">

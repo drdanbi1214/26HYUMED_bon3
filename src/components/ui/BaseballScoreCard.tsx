@@ -91,7 +91,7 @@ export const BaseballScoreCard: React.FC = () => {
   const { data, loading, error, refresh } = useKboScores(true);
 
   return (
-    <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-slate-800/30 border border-slate-100 dark:border-slate-800 rounded-3xl p-4 shadow-sm">
+    <div className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900/50 dark:to-slate-800/30 border border-slate-100 dark:border-slate-800 rounded-3xl p-4 shadow-xl shadow-slate-900/25">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-1.5">
