@@ -140,7 +140,7 @@ export const App: React.FC = () => {
             aria-hidden
             className="fixed inset-0 -z-10 bg-[url('/bg-beach.jpg')] bg-cover bg-center"
           />
-          <div className="min-h-screen transition-colors duration-300 bg-slate-50/50 dark:bg-[#0c1220]/75">
+          <div className="min-h-screen transition-colors duration-300 dark:bg-[#0c1220]/70">
             <Shell>
               <SupabaseBanner />
               <Routes>
