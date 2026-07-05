@@ -135,7 +135,12 @@ export const App: React.FC = () => {
     <BlossomProvider value={{ isBlossom, toggleBlossom, isBaseball, toggleBaseball }}>
       <ToastProvider>
         <BrowserRouter>
-          <div className="min-h-screen transition-colors duration-300 bg-slate-50 dark:bg-[#0c1220]">
+          {/* ── SUMMER BEACH BACKGROUND ── 방학 끝나면 이 div와 아래 veil, public/bg-beach.jpg 제거 ── */}
+          <div
+            aria-hidden
+            className="fixed inset-0 -z-10 bg-[url('/bg-beach.jpg')] bg-cover bg-center"
+          />
+          <div className="min-h-screen transition-colors duration-300 bg-slate-50/50 dark:bg-[#0c1220]/75">
             <Shell>
               <SupabaseBanner />
               <Routes>
