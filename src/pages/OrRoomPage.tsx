@@ -269,6 +269,26 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     setAssignTarget(null);
   };
 
+  /** 우리 수술이 아닌 칸을 시간표에서 지운다 (배정·메모도 같이 정리) */
+  const deleteCase = async () => {
+    if (!room || !assignTarget || saving) return;
+    if (!window.confirm(`"${assignTarget.patientName}" 수술을 시간표에서 삭제할까요?`)) return;
+    const k = String(assignTarget.idx);
+    setSaving(true);
+    const ok = await saveShared(r => {
+      const assignments = { ...r.assignments };
+      delete assignments[k];
+      const memos = { ...r.memos };
+      delete memos[k];
+      return { cases: (r.cases ?? []).filter(c => c.idx !== assignTarget.idx), assignments, memos };
+    });
+    setSaving(false);
+    if (ok) {
+      setAssignTarget(null);
+      toast.success("수술을 삭제했어요");
+    }
+  };
+
   const addClinic = async () => {
     if (!room || !cProf.trim() || saving) return;
     const date = cDate || dates[0];
@@ -676,6 +696,13 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
                 {saving ? "저장 중..." : "저장"}
               </button>
             </div>
+            <button
+              onClick={deleteCase}
+              disabled={saving}
+              className="w-full py-2.5 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50/60 dark:bg-red-950/20 text-[11px] font-bold text-red-500 active:scale-[0.98] transition-all disabled:opacity-60"
+            >
+              🗑 우리 수술이 아니에요 — 시간표에서 삭제
+            </button>
           </div>
         </div>
       )}

@@ -19,8 +19,8 @@ export interface OrRoom extends OrRoomMeta {
   uploaded_at: string | null;
 }
 
-/** saveShared로 갱신하는 공유 필드 (여러 명이 동시에 만지는 것들) */
-type RoomPatch = Partial<Pick<OrRoom, "assignments" | "memos" | "clinics" | "events">>;
+/** saveShared로 갱신하는 공유 필드 (여러 명이 동시에 만지는 것들). cases는 개별 수술 삭제용 */
+type RoomPatch = Partial<Pick<OrRoom, "assignments" | "memos" | "clinics" | "events" | "cases">>;
 
 const TABLE = "or_rooms";
 
