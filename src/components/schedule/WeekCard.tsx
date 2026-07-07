@@ -18,26 +18,26 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week, isCurrent, closures })
 
   return (
     <div
-      className={`p-4 rounded-2xl border transition-all ${
+      className={`p-3 rounded-2xl border transition-all ${
         isCurrent
-          ? "bg-blue-500/5 border-blue-500 shadow-md ring-1 ring-blue-500/20"
+          ? "bg-blue-50/90 dark:bg-slate-900/90 backdrop-blur-md border-blue-500 shadow-md ring-1 ring-blue-500/20"
           : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
       }`}
     >
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-1.5">
         <span className="text-sm font-black">{w}주차</span>
         <span className="text-[10px] text-slate-400">
           {fmtD(d.s)} ~ {fmtD(d.e)}
         </span>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {a.length > 0 ? (
           a.map((x, i) => {
             const link = DEPT_LINKS[getLinkKey(x.dept)] || DEPT_LINKS[db(x.dept)];
             const deptClosures = getRelevantClosures(closures, d.s, d.e, x.dept);
             return (
               <div key={i}>
-                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800">
                   <div>
                     <div className="flex items-center gap-1.5">
                       <div className="text-sm font-bold">{x.dept}</div>

@@ -168,7 +168,7 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
           📅 내 캘린더에 일정 넣기 (아이폰/구글 캘린더)
         </button>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {res.weeks.map(week => (
             <WeekCard key={week.w} week={week} isCurrent={week.w === cw} closures={closures} />
           ))}
