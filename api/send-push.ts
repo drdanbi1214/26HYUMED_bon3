@@ -8,19 +8,29 @@ webpush.setVapidDetails(
   process.env.VAPID_PRIVATE_KEY!
 )
 
+// 카오모지는 iOS 알림에서 깨져 보여서 한글 + 표준 이모지만 사용
 const MESSAGES = [
-  '23시하세요(๑و•̀Δ•́)و',
-  '일실기 제출하세요!!༼ง=ಠ益ಠ=༽ง',
-  '일실기!!!!!제출!!!! ( •̀∀•́ )✧',
-  '일실기!!!!!!!!!!!!!!!!( ´༎ຶㅂ༎ຶ`)',
-  '일실기낸거맞지.......?',
+  '마감 30분 전! 오늘 일실기 제출하셨나요? ⏰',
+  '자기 전에 일실기 꼭 제출하기, 잊지 마세요 🌙',
+  '오늘의 일실기, 지금 내면 딱이에요 ✍️',
+  '일실기 쓰고 개운하게 잡시다 😴',
+  '일실기 제출 확인! 아직이라면 서둘러요 📝',
 ]
 
-export default async function handler(_req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   const supabase = createClient(
     (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL)!,
     process.env.SUPABASE_SERVICE_KEY!
   )
+
+  // pg_cron(정시)과 Vercel 크론(백업, 최대 59분 지연)이 둘 다 호출해도 하룻밤에 한 번만 발송.
+  // 자정을 넘겨 지연 실행돼도 같은 '밤'으로 묶이도록 KST에서 12시간을 빼서 날짜를 만든다.
+  const night = new Date(Date.now() + (9 - 12) * 3600 * 1000).toISOString().slice(0, 10)
+  if (req.query.force !== '1') {
+    const { error: logErr } = await supabase.from('hanyang_push_log').insert({ day: night })
+    if (logErr?.code === '23505') return res.json({ sent: 0, skipped: `already sent (${night})` })
+    // 로그 테이블이 아직 없으면(42P01 등) 중복 방지 없이 그냥 발송
+  }
 
   const { data: subs } = await supabase.from('hanyang_push_subscriptions').select('*')
   if (!subs?.length) return res.json({ sent: 0 })
