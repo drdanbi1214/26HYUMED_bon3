@@ -19,9 +19,11 @@ export const Header: React.FC<HeaderProps> = ({
   onBack,
   rightSlot,
 }) => {
-  const { isBlossom } = useBlossomContext();
+  const { isBlossom, isBaseball } = useBlossomContext();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  // 사진 배경(벚꽃/야구)에서는 흰 글씨 + 그림자, 기본 단색 배경에서는 어두운 글씨
+  const hasPhotoBg = isBlossom || isBaseball;
 
   return (
     <header className="flex items-center justify-between mb-6 shrink-0 relative z-50">
@@ -37,8 +39,10 @@ export const Header: React.FC<HeaderProps> = ({
         )}
         <h1
           onClick={onTitleClick}
-          className={`font-han text-4xl tracking-tight cursor-pointer select-none [text-shadow:0_1px_2px_rgba(0,0,0,0.9),0_3px_10px_rgba(0,0,0,0.6)] ${
-            isBlossom ? "text-pink-100" : "text-white"
+          className={`font-han text-4xl tracking-tight cursor-pointer select-none ${
+            hasPhotoBg
+              ? `[text-shadow:0_1px_2px_rgba(0,0,0,0.9),0_3px_10px_rgba(0,0,0,0.6)] ${isBlossom ? "text-pink-100" : "text-white"}`
+              : "text-slate-800 dark:text-slate-100"
           }`}
         >
           {title}

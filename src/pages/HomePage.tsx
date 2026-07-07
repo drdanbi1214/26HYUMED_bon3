@@ -95,23 +95,23 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-0">
         {/* 검색 영역 */}
         <div className="space-y-3 mb-6 shrink-0">
-          <div className="flex gap-2">
+          <div className="flex gap-1.5">
             <input
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && doSearch()}
               placeholder="조번호(C3) 또는 이름"
-              className="flex-1 px-4 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-xl shadow-slate-900/25"
+              className="flex-1 min-w-0 px-3.5 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-xl shadow-slate-900/25"
             />
             <button
               onClick={doSearch}
-              className="px-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xl shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
+              className="shrink-0 px-3.5 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xl shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
             >
               {isBaseball ? "⚾" : "🔍"}
             </button>
             <button
               onClick={goToMy}
-              className="px-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-black tracking-wide shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
+              className="shrink-0 px-3.5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-black tracking-wide shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
               aria-label="내 스케줄 바로가기"
             >
               MY

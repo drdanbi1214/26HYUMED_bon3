@@ -20,7 +20,8 @@ export default async function handler(req: any, res: any) {
 
   async function tryUrl(url: string, opts?: RequestInit) {
     try {
-      const r = await fetch(url, { headers: BROWSER, ...opts });
+      // 느린 사이트 하나가 전체 응답을 붙잡지 않게 요청당 3초 제한
+      const r = await fetch(url, { headers: BROWSER, signal: AbortSignal.timeout(3000), ...opts });
       const text = await r.text();
       debug.push(`${r.status} ${url.slice(0, 90)} | ${text.slice(0, 120)}`);
       if (!r.ok) return null;
@@ -154,6 +155,7 @@ export default async function handler(req: any, res: any) {
     try {
       const r = await fetch(url, {
         method: "POST",
+        signal: AbortSignal.timeout(3000),
         headers: {
           ...BROWSER,
           "Content-Type": "application/json; charset=utf-8",
@@ -181,24 +183,20 @@ export default async function handler(req: any, res: any) {
   }
 
   async function fetchGames(date: string, dateDash: string): Promise<any[]> {
-    // 1순위: KBO 공식 GET (대소문자 수정)
-    const kbo = await fetchKboOfficial(dateDash);
-    if (kbo && kbo.length > 0) return kbo;
-
-    // 2순위: 다음 스포츠 JSON
-    const daum = await fetchDaum(date);
-    if (daum && daum.length > 0) return daum;
-
-    // 3순위: 네이버 API 변형들
-    const naver = await fetchNaver(date);
-    if (naver && naver.length > 0) return naver;
-
-    // 4순위: 네이버 모바일
-    const naverMobile = await fetchNaverMobile(date, dateDash);
-    if (naverMobile.length > 0) return naverMobile;
-
-    // 5순위: KBO 공식 POST
-    return fetchKboXml(dateDash);
+    // 전 소스를 동시에 시작해두고, 우선순위(KBO 공식 → 다음 → 네이버 → 네이버 모바일 → KBO POST)
+    // 순서로 먼저 성공한 걸 쓴다. 예전엔 하나씩 차례로 기다려서 느렸음.
+    const attempts: Promise<any[] | null>[] = [
+      fetchKboOfficial(dateDash).catch(() => null),
+      fetchDaum(date).catch(() => null),
+      fetchNaver(date).catch(() => null),
+      fetchNaverMobile(date, dateDash).catch(() => [] as any[]),
+      fetchKboXml(dateDash).catch(() => [] as any[]),
+    ];
+    for (const p of attempts) {
+      const r = await p;
+      if (r && r.length > 0) return r;
+    }
+    return [];
   }
 
   const [today, yesterday] = await Promise.all([
@@ -207,6 +205,7 @@ export default async function handler(req: any, res: any) {
   ]);
 
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", "no-store");
+  // Vercel CDN에 60초 캐시 → 같은 1분 안에 여는 사람들은 즉시 응답 (경기 중 점수는 최대 1분 지연)
+  res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=600");
   res.status(200).json({ today, yesterday, todayStr, ystdStr, debug });
 }
