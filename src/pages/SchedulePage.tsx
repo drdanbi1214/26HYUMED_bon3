@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { WeekCard } from "@/components/schedule/WeekCard";
@@ -35,6 +35,15 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
   }, [id, stateName]);
 
   const { closures } = useClosures();
+
+  // 페이지 진입 시 현재 주차 카드로 자동 스크롤 (진입 애니메이션이 끝난 뒤)
+  const curCardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      curCardRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 400);
+    return () => clearTimeout(t);
+  }, []);
 
   if (!res) return <Navigate to="/" replace />;
 
@@ -170,7 +179,9 @@ export const SchedulePage: React.FC<SchedulePageProps> = ({ isDark, onToggleDark
 
         <div className="space-y-2">
           {res.weeks.map(week => (
-            <WeekCard key={week.w} week={week} isCurrent={week.w === cw} closures={closures} />
+            <div key={week.w} ref={week.w === cw ? curCardRef : undefined}>
+              <WeekCard week={week} isCurrent={week.w === cw} closures={closures} />
+            </div>
           ))}
         </div>
       </div>
