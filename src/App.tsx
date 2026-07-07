@@ -17,6 +17,7 @@ import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
 import { useTheme } from "@/hooks/useTheme";
 import { BlossomProvider } from "@/context/BlossomContext";
 import { CherryBlossom } from "@/components/ui/CherryBlossom";
+import { PALETTES } from "@/data/palettes";
 
 /** 수술 시간표 쪽은 넓은 화면(웹)에서 여러 날짜가 한눈에 보이도록 컨테이너를 넓힌다 */
 const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -30,7 +31,7 @@ const Shell: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 export const App: React.FC = () => {
-  const { isDark, isBlossom, isBaseball, toggle: toggleDark, toggleBlossom, toggleBaseball } = useTheme();
+  const { isDark, isBlossom, isBaseball, palette, setPalette, toggle: toggleDark, toggleBlossom, toggleBaseball } = useTheme();
   const commonProps = { isDark, onToggleDark: toggleDark };
 
   // 테마별 배경 사진: 벚꽃/야구 모드만 전용 사진, 기본 모드는 사진 없이 단색 (body 배경색)
@@ -41,13 +42,18 @@ export const App: React.FC = () => {
       : null;
 
   return (
-    <BlossomProvider value={{ isBlossom, toggleBlossom, isBaseball, toggleBaseball }}>
+    <BlossomProvider value={{ isBlossom, toggleBlossom, isBaseball, toggleBaseball, palette, setPalette }}>
       <ToastProvider>
         <BrowserRouter>
           {bgImage && (
             <div aria-hidden className={`fixed inset-0 -z-10 bg-cover bg-center ${bgImage}`} />
           )}
-          <div className="min-h-screen transition-colors duration-300">
+          {/* 기본 모드는 팔레트 틴트 배경 (다크모드는 body 색 그대로) */}
+          <div
+            className={`min-h-screen transition-colors duration-300 ${
+              !bgImage ? `${PALETTES[palette].page} dark:bg-transparent` : ""
+            }`}
+          >
             <Shell>
               <SupabaseBanner />
               <Routes>

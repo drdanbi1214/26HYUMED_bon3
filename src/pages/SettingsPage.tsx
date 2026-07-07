@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { useBlossomContext } from "@/context/BlossomContext";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { PushButton } from "@/components/ui/PushButton";
+import { PALETTES, type PaletteId } from "@/data/palettes";
 import type { HistoryItem } from "@/types";
 
 interface SettingsPageProps {
@@ -27,7 +28,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
  */
 export const SettingsPage: React.FC<SettingsPageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
-  const { isBlossom, toggleBlossom, isBaseball, toggleBaseball } = useBlossomContext();
+  const { isBlossom, toggleBlossom, isBaseball, toggleBaseball, palette, setPalette } = useBlossomContext();
   const [myInfo, setMyInfo] = useLocalStorage<HistoryItem | null>("my_schedule", null);
 
   const themeBtn = (active: boolean, activeCls: string) =>
@@ -75,6 +76,36 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ isDark, onToggleDark
                 {isDark ? "라이트 모드" : "다크 모드"}
               </span>
             </button>
+          </div>
+
+          {/* 기본 모드 색 팔레트 */}
+          <p className="text-[11px] font-bold text-slate-400 mt-4 mb-2">기본 모드 색상</p>
+          <div className="flex gap-2">
+            {(Object.keys(PALETTES) as PaletteId[]).map(id => (
+              <button
+                key={id}
+                onClick={() => setPalette(id)}
+                className={`flex-1 py-3 rounded-2xl border flex flex-col items-center gap-1.5 active:scale-95 transition-all ${
+                  palette === id
+                    ? "border-slate-400 dark:border-slate-500 bg-slate-50 dark:bg-slate-800"
+                    : "border-slate-200 dark:border-slate-800"
+                }`}
+              >
+                <span className="flex gap-1">
+                  {PALETTES[id].swatches.map(c => (
+                    <span
+                      key={c}
+                      className="w-4 h-4 rounded-full border border-black/10"
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                  {PALETTES[id].label}
+                  {palette === id && " ✓"}
+                </span>
+              </button>
+            ))}
           </div>
         </Section>
 

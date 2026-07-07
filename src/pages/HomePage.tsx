@@ -7,6 +7,7 @@ import { curWeek, dDay } from "@/utils/date";
 import { resolveSearchQuery } from "@/utils/buildSchedule";
 import type { HistoryItem } from "@/types";
 import { useBlossomContext } from "@/context/BlossomContext";
+import { PALETTES } from "@/data/palettes";
 import { BlossomTree } from "@/components/ui/BlossomTree";
 import { BaseballScoreCard } from "@/components/ui/BaseballScoreCard";
 
@@ -25,11 +26,22 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [err, setErr] = useState("");
-  const { isBlossom, isBaseball } = useBlossomContext();
+  const { isBlossom, isBaseball, palette } = useBlossomContext();
 
   const { history, push: pushHistory } = useSearchHistory();
   const cw = curWeek();
   const dd = dDay();
+
+  // 기본 모드(테마 없음)에서는 설정에서 고른 팔레트 5색을 홈 버튼 9개에 순서대로 입힌다.
+  // 야구/벚꽃 모드는 사진 배경이라 기존 흰색 카드 유지. 다크모드도 기존 유지.
+  const plain = !isBaseball && !isBlossom;
+  const pal = PALETTES[palette];
+  const gridBtn = (i: number, extra = "gap-3") =>
+    `py-3 rounded-3xl border font-bold flex items-center justify-center active:scale-95 transition-all ${extra} ${
+      plain
+        ? `${pal.btns[i % 5]} border-black/5 shadow-lg ${pal.shadow} dark:bg-slate-900 dark:text-slate-200 dark:border-slate-800`
+        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25"
+    }`;
 
   // MY 버튼: 한 번 저장해두면 이 기기에서 바로 내 스케줄로 이동
   const [myInfo, setMyInfo] = useLocalStorage<HistoryItem | null>("my_schedule", null);
@@ -105,13 +117,21 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             />
             <button
               onClick={doSearch}
-              className="shrink-0 px-3.5 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xl shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
+              className={`shrink-0 px-3.5 rounded-2xl text-white text-xl active:scale-95 transition-all ${
+                plain
+                  ? `${pal.searchBtn} shadow-lg ${pal.shadow}`
+                  : "bg-gradient-to-br from-blue-500 to-blue-600 shadow-xl shadow-slate-900/25"
+              }`}
             >
               {isBaseball ? "⚾" : "🔍"}
             </button>
             <button
               onClick={goToMy}
-              className="shrink-0 px-3.5 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-black tracking-wide shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
+              className={`shrink-0 px-3.5 rounded-2xl text-white text-sm font-black tracking-wide active:scale-95 transition-all ${
+                plain
+                  ? `${pal.myBtn} shadow-lg ${pal.shadow}`
+                  : "bg-gradient-to-br from-indigo-500 to-violet-600 shadow-xl shadow-slate-900/25"
+              }`}
               aria-label="내 스케줄 바로가기"
             >
               MY
@@ -141,10 +161,16 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
         {isBaseball ? (
           <BaseballScoreCard />
         ) : (
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-900/50 dark:to-indigo-950/20 border border-blue-100 dark:border-blue-900/30 rounded-3xl p-6 flex justify-between items-center shadow-xl shadow-slate-900/25">
+          <div
+            className={`bg-gradient-to-br dark:from-slate-900/50 dark:to-indigo-950/20 border dark:border-blue-900/30 rounded-3xl p-6 flex justify-between items-center ${
+              plain
+                ? `${pal.dday} shadow-lg ${pal.shadow}`
+                : "from-blue-50 to-indigo-50 border-blue-100 shadow-xl shadow-slate-900/25"
+            }`}
+          >
             <div>
               <div className="text-xs font-bold text-slate-400 mb-1">여름방학!!!!!!!!ㅠㅠ</div>
-              <div className="text-3xl font-black text-blue-600 dark:text-blue-400">
+              <div className={`text-3xl font-black dark:text-blue-400 ${plain ? pal.ddayNum : "text-blue-600"}`}>
                 {cw === "summer" ? "방학중! 🏝️" : `D-${dd}`}
               </div>
             </div>
@@ -159,10 +185,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
 
         {/* 기능 버튼 그리드 */}
         <div className="grid grid-cols-2 gap-4">
-          <button
-            onClick={() => navigate("/mate")}
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
-          >
+          <button onClick={() => navigate("/mate")} className={gridBtn(0)}>
             <span className="text-xl">{isBaseball ? "⚾" : "👥"}</span>
             <span>구리 메이트</span>
           </button>
@@ -170,36 +193,24 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             href="https://hyu.u-folio.com/login"
             target="_blank"
             rel="noopener noreferrer"
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className={gridBtn(1)}
           >
             <span className="text-xl">{isBaseball ? "⚾" : "✏️"}</span>
             <span>유포폴</span>
           </a>
-          <button
-            onClick={() => navigate("/menu")}
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
-          >
+          <button onClick={() => navigate("/menu")} className={gridBtn(2)}>
             <span>병원식당메뉴</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🍱"}</span>
           </button>
-          <button
-            onClick={() => navigate("/who")}
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
-          >
+          <button onClick={() => navigate("/who")} className={gridBtn(3)}>
             <span>먼저 돈 사람은?</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🔍"}</span>
           </button>
-          <button
-            onClick={() => navigate("/or-schedule")}
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
-          >
+          <button onClick={() => navigate("/or-schedule")} className={gridBtn(4)}>
             <span>수술 시간표</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🏥"}</span>
           </button>
-          <button
-            onClick={() => navigate("/restaurants")}
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
-          >
+          <button onClick={() => navigate("/restaurants")} className={gridBtn(5)}>
             <span>맛집인계</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🥄"}</span>
           </button>
@@ -207,7 +218,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             href="https://map.naver.com/p/directions/14153577.8081099,4523550.9131848/%EA%B5%AC%EB%A6%AC%EC%97%AD%20%EA%B2%BD%EC%9D%98%EC%A4%91%EC%95%99%EC%84%A0,13543572,PLACE_POI/14152317.0592169,4523254.7645331/%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90%EA%B5%AC%EB%A6%AC%EB%B3%91%EC%9B%90,11686929,PLACE_POI/-/transit?c=14.00,0,0,0,dh"
             target="_blank"
             rel="noopener noreferrer"
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-2 active:scale-95 transition-all text-center px-2"
+            className={gridBtn(6, "gap-2 text-center px-2")}
           >
             <span className="text-[13px] leading-tight">
               구리병원가는
@@ -216,17 +227,11 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             </span>
             <span className="text-xl">{isBaseball ? "⚾" : "🚌"}</span>
           </a>
-          <button
-            onClick={() => navigate("/board")}
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3"
-          >
+          <button onClick={() => navigate("/board")} className={gridBtn(7)}>
             <span className="text-xl">{isBaseball ? "⚾" : "💬"}</span>
             <span>익명 게시판</span>
           </button>
-          <button
-            onClick={() => navigate("/prof")}
-            className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
-          >
+          <button onClick={() => navigate("/prof")} className={gridBtn(8)}>
             <span>교수님 미리뵙기</span>
             <span className="text-xl">{isBaseball ? "⚾" : "👨‍🏫"}</span>
           </button>
