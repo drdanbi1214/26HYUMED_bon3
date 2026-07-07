@@ -1,4 +1,5 @@
 import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Icon } from "@/components/ui/Icon";
 import { useBlossomContext } from "@/context/BlossomContext";
 
@@ -17,10 +18,10 @@ export const Header: React.FC<HeaderProps> = ({
   onTitleClick,
   onBack,
   rightSlot,
-  isDark,
-  onToggleDark,
 }) => {
-  const { isBlossom, toggleBlossom, isBaseball, toggleBaseball } = useBlossomContext();
+  const { isBlossom } = useBlossomContext();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   return (
     <header className="flex items-center justify-between mb-6 shrink-0 relative z-50">
@@ -45,39 +46,16 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
       <div className="flex items-center gap-2">
         {rightSlot}
-        {/* BASEBALL FEATURE */}
-        <button
-          onClick={toggleBaseball}
-          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-lg shadow-slate-900/20 active:scale-90 transition-all ${
-            isBaseball
-              ? "border-blue-400 bg-blue-100 dark:bg-blue-900/40 scale-105"
-              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
-          }`}
-          aria-label="야구 모드 토글"
-          title="⚾ 야구 모드"
-        >
-          ⚾
-        </button>
-        {/* CHERRY BLOSSOM FEATURE — remove next button when done */}
-        <button
-          onClick={toggleBlossom}
-          className={`w-10 h-10 rounded-xl border flex items-center justify-center text-lg shadow-lg shadow-slate-900/20 active:scale-90 transition-all ${
-            isBlossom
-              ? "border-pink-300 bg-pink-100 scale-105"
-              : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
-          }`}
-          aria-label="벚꽃 테마 토글"
-          title="🌸 봄 테마"
-        >
-          🌸
-        </button>
-        <button
-          onClick={onToggleDark}
-          className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-lg shadow-lg shadow-slate-900/20 active:scale-90 transition-all"
-          aria-label="다크모드 토글"
-        >
-          {isDark ? "☀️" : "🌙"}
-        </button>
+        {pathname !== "/settings" && (
+          <button
+            onClick={() => navigate("/settings")}
+            className="w-10 h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-center text-lg shadow-lg shadow-slate-900/20 active:scale-90 transition-all"
+            aria-label="설정"
+            title="설정"
+          >
+            ⚙️
+          </button>
+        )}
       </div>
     </header>
   );
