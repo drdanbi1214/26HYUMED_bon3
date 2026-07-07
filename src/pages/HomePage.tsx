@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { curWeek, dDay } from "@/utils/date";
 import { resolveSearchQuery } from "@/utils/buildSchedule";
 import type { HistoryItem } from "@/types";
@@ -30,6 +31,9 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
   const cw = curWeek();
   const dd = dDay();
 
+  // MY 버튼: 한 번 저장해두면 이 기기에서 바로 내 스케줄로 이동
+  const [myInfo, setMyInfo] = useLocalStorage<HistoryItem | null>("my_schedule", null);
+
   /** 조+번호로 실제 이동. history push도 같이. */
   const goToSchedule = (g: string, n: number, name?: string) => {
     const item: HistoryItem = {
@@ -56,6 +60,34 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
     setErr("결과가 없습니다.");
   };
 
+  /**
+   * MY: 저장된 내 정보가 있으면 바로 내 스케줄로.
+   * 없으면(또는 검색칸에 뭔가 쳐놨으면) 그걸 내 정보로 저장하고 이동.
+   * → 이름을 바꿔 저장하고 싶으면 검색칸에 새 이름 치고 MY를 누르면 됨.
+   */
+  const goToMy = () => {
+    setErr("");
+    if (input.trim()) {
+      const r = resolveSearchQuery(input);
+      if (r.ok) {
+        setMyInfo({ id: `${r.g}${r.n}`, g: r.g, n: r.n, name: r.name || `${r.g}${r.n}` });
+        goToSchedule(r.g, r.n, r.name);
+        return;
+      }
+      if (r.candidates) {
+        setErr(`검색 결과 여러 명: ${r.candidates.join(", ")}`);
+        return;
+      }
+      setErr("결과가 없습니다.");
+      return;
+    }
+    if (myInfo) {
+      goToSchedule(myInfo.g, myInfo.n, myInfo.name);
+      return;
+    }
+    setErr("검색칸에 내 이름(또는 조번호)을 치고 MY를 누르면 저장돼요. 다음부터는 MY만 누르면 바로 이동!");
+  };
+
   return (
     <>
       <Header title="🩺 2026 본3 실습" isDark={isDark} onToggleDark={onToggleDark} />
@@ -73,9 +105,16 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             />
             <button
               onClick={doSearch}
-              className="px-5 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xl shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
+              className="px-4 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xl shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
             >
               {isBaseball ? "⚾" : "🔍"}
+            </button>
+            <button
+              onClick={goToMy}
+              className="px-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-black tracking-wide shadow-xl shadow-slate-900/25 active:scale-95 transition-all"
+              aria-label="내 스케줄 바로가기"
+            >
+              MY
             </button>
           </div>
           {history.length > 0 && (
@@ -151,11 +190,11 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">{isBaseball ? "⚾" : "🔍"}</span>
           </button>
           <button
-            onClick={() => navigate("/prof")}
+            onClick={() => navigate("/or-schedule")}
             className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
-            <span>교수님 미리뵙기</span>
-            <span className="text-xl">{isBaseball ? "⚾" : "👨‍🏫"}</span>
+            <span>수술 시간표</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "🏥"}</span>
           </button>
           <button
             onClick={() => navigate("/restaurants")}
@@ -185,11 +224,11 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span>익명 게시판</span>
           </button>
           <button
-            onClick={() => navigate("/or-schedule")}
+            onClick={() => navigate("/prof")}
             className="py-3 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 font-bold text-slate-700 dark:text-slate-200 shadow-xl shadow-slate-900/25 flex items-center justify-center gap-3 active:scale-95 transition-all"
           >
-            <span>수술 시간표</span>
-            <span className="text-xl">{isBaseball ? "⚾" : "🏥"}</span>
+            <span>교수님 미리뵙기</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "👨‍🏫"}</span>
           </button>
         </div>
 
