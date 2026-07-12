@@ -339,13 +339,20 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
   const copyMessage = async (dash: DashDate) => {
     if (!room) return;
     const sec = room.view === "all" ? "전체" : `서울 ${room.view} section`;
-    const lines = dash.students.map(
+    // 학번(E1, E2, …) 오름차순. 학번 없는 이름은 뒤로.
+    const students = [...dash.students].sort((a, b) => {
+      const ma = NAME_LOOKUP[a.name.trim()];
+      const mb = NAME_LOOKUP[b.name.trim()];
+      if (!ma || !mb) return ma ? -1 : mb ? 1 : 0;
+      return ma.group !== mb.group ? ma.group.localeCompare(mb.group) : ma.number - mb.number;
+    });
+    const lines = students.map(
       s => `${withCode(s.name)} - ${s.entries.map(e => e.msgPart).join("/ ")}`,
     );
     if (dash.events.length > 0) {
       lines.push(`공용 일정 - ${dash.events.map(e => e.msgPart).join("/ ")}`);
     }
-    const msg = [`${sec} 익일 일정 계획 다음과 같습니다.`, ...lines, "감사합니다 교수님"].join("\n");
+    const msg = [`${sec} 익일 일정 다음과 같습니다.`, "", ...lines, "", "감사합니다 교수님."].join("\n");
     try {
       await navigator.clipboard.writeText(msg);
       toast.success("메시지를 복사했어요");
