@@ -6,6 +6,7 @@ export interface OrRoomMeta {
   id: string;
   name: string;
   view: ViewId | null;
+  color: string | null;
   created_at: string;
 }
 
@@ -18,6 +19,19 @@ export interface OrRoom extends OrRoomMeta {
   memos: Record<string, string>;
   uploaded_at: string | null;
 }
+
+/** 방 목록에서 고를 수 있는 색 태그 프리셋 */
+export const ROOM_COLORS = [
+  "#F87171", // red
+  "#FB923C", // orange
+  "#FBBF24", // amber
+  "#4ADE80", // green
+  "#2DD4BF", // teal
+  "#60A5FA", // blue
+  "#818CF8", // indigo
+  "#C084FC", // purple
+  "#F472B6", // pink
+];
 
 /** saveShared로 갱신하는 공유 필드 (여러 명이 동시에 만지는 것들). cases는 개별 수술 삭제용 */
 type RoomPatch = Partial<Pick<OrRoom, "assignments" | "memos" | "clinics" | "events" | "cases">>;
@@ -37,6 +51,7 @@ function rowToRoom(d: any): OrRoom {
     id: d.id,
     name: d.name,
     view: parseView(d.view),
+    color: d.color ?? null,
     cases: d.cases ?? null,
     assignments: d.assignments ?? {},
     changes: d.changes ?? [],
@@ -72,7 +87,7 @@ export function useOrRooms() {
     setLoading(true);
     const { data, error } = await supabase
       .from(TABLE)
-      .select("id,name,view,created_at")
+      .select("id,name,view,color,created_at")
       .order("created_at", { ascending: false });
     if (error) setError(friendlyError(error));
     else if (data) {
@@ -96,9 +111,26 @@ export function useOrRooms() {
       setError(friendlyError(error));
       return null;
     }
-    const meta: OrRoomMeta = { id: data.id, name: data.name, view: null, created_at: data.created_at };
+    const meta: OrRoomMeta = {
+      id: data.id,
+      name: data.name,
+      view: null,
+      color: data.color ?? null,
+      created_at: data.created_at,
+    };
     setRooms(prev => [meta, ...prev]);
     return meta;
+  }, []);
+
+  /** 방 목록 색 태그 변경 (null이면 태그 없앰) */
+  const setColor = useCallback(async (id: string, color: string | null): Promise<boolean> => {
+    const { error } = await supabase.from(TABLE).update({ color }).eq("id", id);
+    if (error) {
+      setError(friendlyError(error));
+      return false;
+    }
+    setRooms(prev => prev.map(r => (r.id === id ? { ...r, color } : r)));
+    return true;
   }, []);
 
   /** 삭제 비밀번호가 맞아야만 지워진다. "ok" | "wrong"(비번 불일치) | "error" */
@@ -118,7 +150,7 @@ export function useOrRooms() {
     return "ok";
   }, []);
 
-  return { rooms, loading, error, fetch, create, remove };
+  return { rooms, loading, error, fetch, create, remove, setColor };
 }
 
 /** 방 하나 (시간표·배정 포함) */

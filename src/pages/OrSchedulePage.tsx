@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { OrExcelUploader } from "@/components/or/OrExcelUploader";
 import { OrGridTable } from "@/components/or/OrGridTable";
-import { useOrRooms } from "@/hooks/useOrRooms";
+import { ROOM_COLORS, useOrRooms } from "@/hooks/useOrRooms";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import {
   OrCase,
@@ -37,6 +37,7 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
   const [newRoomName, setNewRoomName] = useState("");
   const [newRoomPw, setNewRoomPw] = useState("");
   const [creatingRoom, setCreatingRoom] = useState(false);
+  const [colorPickerId, setColorPickerId] = useState<string | null>(null);
 
   const grids = useMemo(() => {
     if (!cases) return null;
@@ -69,6 +70,11 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
     if (pw == null || !pw.trim()) return;
     const result = await roomsApi.remove(id, pw.trim());
     if (result === "wrong") window.alert("삭제 비밀번호가 틀렸어요.");
+  };
+
+  const pickColor = async (id: string, color: string | null) => {
+    await roomsApi.setColor(id, color);
+    setColorPickerId(null);
   };
 
   const download = async () => {
@@ -111,23 +117,61 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
               </p>
             )}
             {roomsApi.rooms.map(r => (
-              <div key={r.id} className="flex items-center gap-2">
-                <button
-                  onClick={() => navigate(`/or-schedule/room/${r.id}`)}
-                  className="flex-1 flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-left active:scale-[0.98] transition-all"
-                >
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{r.name}</span>
-                  <span className="text-[10px] text-slate-400">
-                    {r.view == null ? "시간표 없음" : VIEW_LABELS[r.view].split(" ")[0]} →
-                  </span>
-                </button>
-                <button
-                  onClick={() => deleteRoom(r.id, r.name)}
-                  aria-label="방 삭제"
-                  className="w-9 h-9 shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 text-xs active:scale-90 transition-all"
-                >
-                  ✕
-                </button>
+              <div key={r.id} className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate(`/or-schedule/room/${r.id}`)}
+                    className="flex-1 flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-left active:scale-[0.98] transition-all"
+                    style={r.color ? { borderLeft: `4px solid ${r.color}` } : undefined}
+                  >
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{r.name}</span>
+                    <span className="text-[10px] text-slate-400">
+                      {r.view == null ? "시간표 없음" : VIEW_LABELS[r.view].split(" ")[0]} →
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => deleteRoom(r.id, r.name)}
+                    aria-label="방 삭제"
+                    className="w-9 h-9 shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 text-xs active:scale-90 transition-all"
+                  >
+                    ✕
+                  </button>
+                  <button
+                    onClick={() => setColorPickerId(id => (id === r.id ? null : r.id))}
+                    aria-label="방 색깔 설정"
+                    className="w-9 h-9 shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 text-xs active:scale-90 transition-all flex items-center justify-center"
+                  >
+                    {r.color ? (
+                      <span
+                        className="w-4 h-4 rounded-full border border-black/10"
+                        style={{ backgroundColor: r.color }}
+                      />
+                    ) : (
+                      "🎨"
+                    )}
+                  </button>
+                </div>
+                {colorPickerId === r.id && (
+                  <div className="flex flex-wrap items-center gap-2 px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    {ROOM_COLORS.map(c => (
+                      <button
+                        key={c}
+                        onClick={() => pickColor(r.id, c)}
+                        aria-label={`색 ${c}`}
+                        className={`w-7 h-7 rounded-full border-2 active:scale-90 transition-all ${
+                          r.color === c ? "border-slate-700 dark:border-white" : "border-transparent"
+                        }`}
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                    <button
+                      onClick={() => pickColor(r.id, null)}
+                      className="text-[10px] font-bold text-slate-400 px-2.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 active:scale-95 transition-all"
+                    >
+                      없음
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
             {!roomsApi.loading && roomsApi.rooms.length === 0 && !roomsApi.error && (

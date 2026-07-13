@@ -8,6 +8,7 @@ import {
   SLOT_MIN,
   clinicRange,
   fmtDateHeader,
+  fmtHours,
   fmtTime,
   roomLabel,
   studentColors,
@@ -201,7 +202,8 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                     >
                       <div className={`p-1.5 space-y-0.5${assigned ? "" : " opacity-55"}`}>
                         <div className="text-[9px] font-semibold text-slate-500">
-                          {fmtTime(oc.startMin)}~{fmtTime(oc.startMin + oc.durMin)} · {roomLabel(oc.room)}
+                          {fmtHours(oc.durMin)} · {fmtTime(oc.startMin)}~{fmtTime(oc.startMin + oc.durMin)} ·{" "}
+                          {roomLabel(oc.room)}
                         </div>
                         <div className="text-[11px] font-bold text-slate-800 leading-tight">
                           {oc.patientName}{" "}

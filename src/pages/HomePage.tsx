@@ -214,19 +214,17 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span>맛집인계</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🥄"}</span>
           </button>
-          <a
-            href="https://map.naver.com/p/directions/14153577.8081099,4523550.9131848/%EA%B5%AC%EB%A6%AC%EC%97%AD%20%EA%B2%BD%EC%9D%98%EC%A4%91%EC%95%99%EC%84%A0,13543572,PLACE_POI/14152317.0592169,4523254.7645331/%ED%95%9C%EC%96%91%EB%8C%80%ED%95%99%EA%B5%90%EA%B5%AC%EB%A6%AC%EB%B3%91%EC%9B%90,11686929,PLACE_POI/-/transit?c=14.00,0,0,0,dh"
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => navigate("/shuttle")}
             className={gridBtn(6, "gap-2 text-center px-2")}
           >
             <span className="text-[13px] leading-tight">
-              구리병원가는
+              구리병원
               <br />
-              버스조회
+              셔틀조회
             </span>
             <span className="text-xl">{isBaseball ? "⚾" : "🚌"}</span>
-          </a>
+          </button>
           <button onClick={() => navigate("/board")} className={gridBtn(7)}>
             <span className="text-xl">{isBaseball ? "⚾" : "💬"}</span>
             <span>익명 게시판</span>

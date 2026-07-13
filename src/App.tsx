@@ -5,6 +5,7 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { SchedulePage } from "@/pages/SchedulePage";
 import { BoardPage } from "@/pages/BoardPage";
 import { MenuPage } from "@/pages/MenuPage";
+import { ShuttlePage } from "@/pages/ShuttlePage";
 import { WhoPage } from "@/pages/WhoPage";
 import { ProfPage } from "@/pages/ProfPage";
 import { RestaurantsPage } from "@/pages/RestaurantsPage";
@@ -62,6 +63,7 @@ export const App: React.FC = () => {
                 <Route path="/schedule/:id" element={<SchedulePage {...commonProps} />} />
                 <Route path="/board" element={<BoardPage {...commonProps} />} />
                 <Route path="/menu" element={<MenuPage {...commonProps} />} />
+                <Route path="/shuttle" element={<ShuttlePage {...commonProps} />} />
                 <Route path="/who" element={<WhoPage {...commonProps} />} />
                 <Route path="/prof" element={<ProfPage {...commonProps} />} />
                 <Route path="/restaurants" element={<RestaurantsPage {...commonProps} />} />
