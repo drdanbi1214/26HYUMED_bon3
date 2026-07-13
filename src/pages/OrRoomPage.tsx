@@ -395,7 +395,7 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
       {list.map(dash => (
         <div key={dash.date}>
           <div className="flex items-center justify-between mb-1.5">
-            <p className={`text-xs font-bold ${muted ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`}>
+            <p className={`text-base font-bold ${muted ? "text-slate-400" : "text-slate-600 dark:text-slate-300"}`}>
               📅 {fmtDateHeader(dash.date)}
             </p>
             <button
@@ -540,7 +540,7 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
         {/* 학생별 배정 대시보드 (당일/미래) */}
         {room?.cases && upcoming.length > 0 && !showUploader && (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-3">
-            <p className="text-sm font-bold text-slate-700 dark:text-slate-200">👥 학생별 배정</p>
+            <p className="text-lg font-bold text-slate-700 dark:text-slate-200">👥 학생별 배정</p>
             {hourSummary.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {hourSummary.map(s => (
