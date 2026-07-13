@@ -9,6 +9,13 @@ create table if not exists hospital_shuttle (
 alter table hospital_shuttle enable row level security;
 create policy "hospital_shuttle_all" on hospital_shuttle for all using (true) with check (true);
 
--- ⚠️ 이 SQL로는 만들 수 없는 부분: Storage 버킷
--- Supabase 대시보드 → Storage → New bucket 에서 이름 "shuttle-images", Public bucket 체크로 1회 생성해야 함.
+-- ⚠️ 이 위까지는 SQL Editor에서 실행되지만, Storage 버킷 자체는 대시보드에서 만들어야 함:
+-- Supabase 대시보드 → Storage → New bucket 에서 이름 "shuttle-images", Public bucket 체크로 1회 생성.
 -- (hospital_menu 용으로 만들었던 "menu-images" 버킷과 같은 방식)
+
+-- 버킷을 만든 뒤, 아래 정책도 SQL Editor에서 실행해야 업로드(쓰기)가 허용됨.
+-- "Public bucket" 체크는 다운로드(읽기)만 열어주고, 업로드는 별도 정책이 있어야 가능하기 때문.
+create policy "shuttle_images_all"
+on storage.objects for all
+using (bucket_id = 'shuttle-images')
+with check (bucket_id = 'shuttle-images');
