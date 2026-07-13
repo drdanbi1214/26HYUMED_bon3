@@ -216,11 +216,6 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                             👤 {assigned}
                           </div>
                         )}
-                        {memos?.[String(oc.idx)] && (
-                          <div className="text-[9px] text-slate-600 leading-tight break-keep">
-                            📝 {memos[String(oc.idx)]}
-                          </div>
-                        )}
                       </div>
                     </td>
                   );
