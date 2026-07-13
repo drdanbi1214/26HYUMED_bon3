@@ -33,19 +33,20 @@ export const ShuttlePage: React.FC<ShuttlePageProps> = ({ isDark, onToggleDark }
     }
   };
 
-  const handleSave = async (file: File) => {
+  const handleSave = async (file: File): Promise<string | null> => {
     if (!isSupabaseConfigured) {
-      toast.error("Supabase가 설정되지 않아 업로드할 수 없어요.");
-      return false;
+      const msg = "Supabase가 설정되지 않아 업로드할 수 없어요.";
+      toast.error(msg);
+      return msg;
     }
-    const ok = await uploadAndSave(file);
-    if (ok) {
+    const err = await uploadAndSave(file);
+    if (!err) {
       toast.success("셔틀 안내 이미지가 업로드됐어요.");
       setEditing(false);
     } else {
-      toast.error("업로드 실패. 다시 시도해주세요.");
+      toast.error(err);
     }
-    return ok;
+    return err;
   };
 
   return (

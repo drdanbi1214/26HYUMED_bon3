@@ -48,16 +48,17 @@ export function useShuttle() {
 
   /**
    * 이미지를 Storage에 업로드하고, 그 public URL을 hospital_shuttle에 insert 한다.
-   * 성공하면 새 URL을 state에 반영하고 true 반환.
+   * 성공하면 새 URL을 state에 반영하고 null 반환. 실패하면 구체적인 에러 메시지를 반환.
    */
-  const uploadAndSave = useCallback(async (file: File): Promise<boolean> => {
+  const uploadAndSave = useCallback(async (file: File): Promise<string | null> => {
     if (!isSupabaseConfigured) {
       setError(NOT_CONFIGURED_MSG);
-      return false;
+      return NOT_CONFIGURED_MSG;
     }
     if (!file.type.startsWith("image/")) {
-      setError("이미지 파일만 업로드할 수 있어요.");
-      return false;
+      const msg = "이미지 파일만 업로드할 수 있어요.";
+      setError(msg);
+      return msg;
     }
 
     setUploading(true);
@@ -71,29 +72,32 @@ export function useShuttle() {
       upsert: false,
     });
     if (uploadErr) {
-      setError(`업로드 실패: ${uploadErr.message}`);
+      const msg = `업로드 실패: ${uploadErr.message}`;
+      setError(msg);
       setUploading(false);
-      return false;
+      return msg;
     }
 
     const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(filename);
     const publicUrl = pub?.publicUrl;
     if (!publicUrl) {
-      setError("공개 URL을 가져오지 못했어요.");
+      const msg = "공개 URL을 가져오지 못했어요.";
+      setError(msg);
       setUploading(false);
-      return false;
+      return msg;
     }
 
     const { error: dbErr } = await supabase.from("hospital_shuttle").insert([{ content: publicUrl }]);
     if (dbErr) {
-      setError(`DB 저장 실패: ${dbErr.message}`);
+      const msg = `DB 저장 실패: ${dbErr.message}`;
+      setError(msg);
       setUploading(false);
-      return false;
+      return msg;
     }
 
     setImageUrl(publicUrl);
     setUploading(false);
-    return true;
+    return null;
   }, []);
 
   return { imageUrl, loading, error, uploading, uploadAndSave, refetch };

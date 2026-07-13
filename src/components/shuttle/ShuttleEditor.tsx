@@ -3,8 +3,8 @@ import React, { useRef, useState } from "react";
 interface ShuttleEditorProps {
   /** 현재 저장된 셔틀 안내 이미지 URL (없으면 null) */
   initialUrl: string | null;
-  /** 이미지 업로드 + DB 저장. 성공 시 true */
-  onSave: (file: File) => Promise<boolean>;
+  /** 이미지 업로드 + DB 저장. 성공 시 null, 실패 시 구체적인 에러 메시지 */
+  onSave: (file: File) => Promise<string | null>;
   onCancel: () => void;
   /** 외부(useShuttle)에서 업로드 중인지 여부 */
   uploading?: boolean;
@@ -50,8 +50,8 @@ export const ShuttleEditor: React.FC<ShuttleEditorProps> = ({
       return;
     }
     setErr(null);
-    const ok = await onSave(file);
-    if (!ok) setErr("업로드에 실패했어요. 다시 시도해주세요.");
+    const errMsg = await onSave(file);
+    if (errMsg) setErr(errMsg);
   };
 
   return (
