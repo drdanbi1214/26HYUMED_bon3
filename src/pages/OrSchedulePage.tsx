@@ -22,6 +22,15 @@ interface OrSchedulePageProps {
 
 const VIEW_IDS: ViewId[] = [1, 2, "all"];
 
+/** 방 색깔 배경 위 글자색: 밝은 색이면 짙은 회색, 어두운 색이면 흰색 */
+function textColorFor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "#1e293b" : "#ffffff";
+}
+
 /**
  * 수술 시간표 홈: 배정 방 목록/생성 + (방 없이 쓰는) 일회성 시간표 보기.
  */
@@ -121,11 +130,21 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => navigate(`/or-schedule/room/${r.id}`)}
-                    className="flex-1 flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-left active:scale-[0.98] transition-all"
-                    style={r.color ? { borderLeft: `4px solid ${r.color}` } : undefined}
+                    className={`flex-1 flex items-center justify-between px-4 py-3 rounded-2xl border text-left active:scale-[0.98] transition-all ${
+                      r.color ? "" : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700"
+                    }`}
+                    style={r.color ? { backgroundColor: r.color, borderColor: r.color } : undefined}
                   >
-                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{r.name}</span>
-                    <span className="text-[10px] text-slate-400">
+                    <span
+                      className={`text-sm font-bold ${r.color ? "" : "text-slate-700 dark:text-slate-200"}`}
+                      style={r.color ? { color: textColorFor(r.color) } : undefined}
+                    >
+                      {r.name}
+                    </span>
+                    <span
+                      className={`text-[10px] ${r.color ? "" : "text-slate-400"}`}
+                      style={r.color ? { color: textColorFor(r.color), opacity: 0.8 } : undefined}
+                    >
                       {r.view == null ? "시간표 없음" : VIEW_LABELS[r.view].split(" ")[0]} →
                     </span>
                   </button>
@@ -164,6 +183,18 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
                         style={{ backgroundColor: c }}
                       />
                     ))}
+                    <label
+                      className="w-7 h-7 shrink-0 rounded-full border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-[10px] cursor-pointer active:scale-90 transition-all relative overflow-hidden"
+                      title="직접 색 선택"
+                    >
+                      🎨
+                      <input
+                        type="color"
+                        value={r.color ?? "#94a3b8"}
+                        onChange={e => pickColor(r.id, e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                    </label>
                     <button
                       onClick={() => pickColor(r.id, null)}
                       className="text-[10px] font-bold text-slate-400 px-2.5 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 active:scale-95 transition-all"
