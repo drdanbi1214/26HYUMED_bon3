@@ -91,6 +91,8 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
 
   // 수술 배정/메모 입력 모달
   const [assignTarget, setAssignTarget] = useState<OrCase | null>(null);
+  // "modal": 시간표 칸 클릭 (작은 중앙 모달), "sheet": 대시보드 메모 아이콘 클릭 (전체화면 시트)
+  const [assignMode, setAssignMode] = useState<"modal" | "sheet">("modal");
   const [nameInput, setNameInput] = useState("");
   const [memoInput, setMemoInput] = useState("");
 
@@ -238,16 +240,17 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     }
   };
 
-  const openAssign = (c: OrCase) => {
+  const openAssign = (c: OrCase, mode: "modal" | "sheet" = "modal") => {
     setAssignTarget(c);
+    setAssignMode(mode);
     setNameInput(room?.assignments[String(c.idx)] ?? "");
     setMemoInput(room?.memos[String(c.idx)] ?? "");
   };
 
-  /** 대시보드 메모 아이콘에서 열기 (시간표 칸과 같은 메모를 공유) */
+  /** 대시보드 메모 아이콘에서 열기 (시간표 칸과 같은 메모를 공유, 전체화면 시트로 크게 표시) */
   const openAssignByIdx = (caseIdx: number) => {
     const c = room?.cases?.find(x => x.idx === caseIdx);
-    if (c) openAssign(c);
+    if (c) openAssign(c, "sheet");
   };
 
   const saveAssign = async () => {
@@ -652,8 +655,8 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
         )}
       </div>
 
-      {/* 수술 배정 입력 모달 */}
-      {assignTarget && (
+      {/* 수술 배정 입력 모달 (시간표 칸 클릭 → 작은 중앙 모달) */}
+      {assignTarget && assignMode === "modal" && (
         <div
           className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-6"
           onClick={() => setAssignTarget(null)}
@@ -710,6 +713,83 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
             >
               🗑 우리 수술이 아니에요 — 시간표에서 삭제
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 메모 전체화면 시트 (대시보드 📝 아이콘 클릭 → 크게 표시) */}
+      {assignTarget && assignMode === "sheet" && (
+        <div
+          className="fixed inset-0 z-50 bg-black/40 flex items-end justify-center"
+          onClick={() => setAssignTarget(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-t-3xl w-full max-w-2xl h-[92vh] shadow-xl flex flex-col animate-in slide-in-from-bottom duration-300"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3 p-6 pb-4 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <p className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                  {assignTarget.patientName}{" "}
+                  <span className="font-normal text-slate-400 text-base">({assignTarget.patientNo})</span>
+                </p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 leading-snug mt-1">
+                  {assignTarget.opName}
+                  <br />
+                  {fmtDateHeader(assignTarget.date)} {fmtTime(assignTarget.startMin)}~
+                  {fmtTime(assignTarget.startMin + assignTarget.durMin)} · {assignTarget.surgeon} ·{" "}
+                  {roomLabel(assignTarget.room)}
+                </p>
+              </div>
+              <button
+                onClick={() => setAssignTarget(null)}
+                aria-label="닫기"
+                className="shrink-0 w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 active:scale-90 transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 p-6 pt-4 space-y-3 overflow-y-auto">
+              <input
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+                placeholder="학생 이름 (여러 명이면 쉼표로 구분)"
+                className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-sm text-sm"
+              />
+              <textarea
+                value={memoInput}
+                onChange={e => setMemoInput(e.target.value)}
+                placeholder="📝 메모 (시간표와 대시보드에서 같이 보여요)"
+                autoFocus
+                className="w-full h-full min-h-[240px] px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all shadow-sm text-base resize-none"
+              />
+            </div>
+
+            <div className="p-6 pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setAssignTarget(null)}
+                  className="flex-1 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm font-bold text-slate-500 active:scale-[0.98] transition-all"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={saveAssign}
+                  disabled={saving}
+                  className="flex-1 py-3 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 text-white text-sm font-bold shadow-md active:scale-[0.98] transition-all disabled:opacity-60"
+                >
+                  {saving ? "저장 중..." : "저장"}
+                </button>
+              </div>
+              <button
+                onClick={deleteCase}
+                disabled={saving}
+                className="w-full py-2.5 rounded-2xl border border-red-200 dark:border-red-900 bg-red-50/60 dark:bg-red-950/20 text-xs font-bold text-red-500 active:scale-[0.98] transition-all disabled:opacity-60"
+              >
+                🗑 우리 수술이 아니에요 — 시간표에서 삭제
+              </button>
+            </div>
           </div>
         </div>
       )}
