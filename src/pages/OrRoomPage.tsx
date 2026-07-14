@@ -543,7 +543,12 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
         {/* 학생별 배정 대시보드 (당일/미래) */}
         {room?.cases && upcoming.length > 0 && !showUploader && (
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm space-y-3">
-            <p className="text-lg font-bold text-slate-700 dark:text-slate-200">👥 학생별 배정</p>
+            <p className="text-lg font-bold text-slate-700 dark:text-slate-200">
+              👥 학생별 배정{" "}
+              {room.uploaded_at && (
+                <span className="text-sm font-normal text-slate-400">({fmtStamp(room.uploaded_at)})</span>
+              )}
+            </p>
             {hourSummary.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {hourSummary.map(s => (
@@ -607,12 +612,15 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
         {room?.cases && room.view != null && grids && !showUploader && (
           <>
             <div className="flex items-center justify-between px-1">
+              <p className="text-lg font-bold text-slate-700 dark:text-slate-200">
+                🗓️ 시간표{" "}
+                {room.uploaded_at && (
+                  <span className="text-sm font-normal text-slate-400">({fmtStamp(room.uploaded_at)})</span>
+                )}
+              </p>
               <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                 {VIEW_LABELS[room.view]}
               </span>
-              {room.uploaded_at && (
-                <span className="text-[11px] text-slate-400">🕒 {fmtStamp(room.uploaded_at)}</span>
-              )}
             </div>
 
             <p className="text-[10px] text-slate-400 text-center">
