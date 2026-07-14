@@ -201,6 +201,9 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
                       style={{ minWidth: 106, backgroundColor: `#${cellColor}`, boxShadow: caseShadow }}
                     >
                       <div className={`p-1.5 space-y-0.5${assigned ? "" : " opacity-55"}`}>
+                        {oc.referral && (
+                          <div className="text-[10px] font-bold text-red-600 leading-tight">협진!</div>
+                        )}
                         <div className="text-[9px] font-semibold text-slate-500">
                           {fmtHours(oc.durMin)} · {fmtTime(oc.startMin)}~{fmtTime(oc.startMin + oc.durMin)} ·{" "}
                           {roomLabel(oc.room)}

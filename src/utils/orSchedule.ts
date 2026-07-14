@@ -13,6 +13,8 @@ export interface OrCase {
   patientName: string;
   opName: string;
   surgeon: string;
+  /** 협진 열이 "Y"인 케이스 */
+  referral: boolean;
 }
 
 export type SectionId = 1 | 2;
