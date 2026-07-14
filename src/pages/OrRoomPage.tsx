@@ -80,7 +80,7 @@ function withCode(name: string): string {
 export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const { room, loading, error, saveTimetable, saveShared, clearChanges } = useOrRoom(id ?? "");
+  const { room, loading, error, saveTimetable, saveShared, clearChanges, undoUpload } = useOrRoom(id ?? "");
   const toast = useToast();
 
   // 새로 올려서 아직 저장 안 된 파싱 결과
@@ -88,6 +88,7 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
   const [replacing, setReplacing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [undoing, setUndoing] = useState(false);
 
   // 수술 배정/메모 입력 모달
   const [assignTarget, setAssignTarget] = useState<OrCase | null>(null);
@@ -391,6 +392,17 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
     }
   };
 
+  /** 직전 엑셀 업로드로 되돌리기 (최대 UNDO_LIMIT번 전까지) */
+  const handleUndo = async () => {
+    if (!room || undoing) return;
+    if (!window.confirm("직전 업로드 상태로 되돌릴까요? 그 이후에 입력한 배정·메모는 사라져요.")) return;
+    setUndoing(true);
+    const ok = await undoUpload();
+    setUndoing(false);
+    if (ok) toast.success("직전 업로드로 되돌렸어요");
+    else toast.error("더 되돌릴 업로드가 없어요");
+  };
+
   const showUploader = !!room && (!room.cases || replacing);
 
   const renderDash = (list: DashDate[], muted: boolean) => (
@@ -651,6 +663,16 @@ export const OrRoomPage: React.FC<OrRoomPageProps> = ({ isDark, onToggleDark }) 
                 {downloading ? "만드는 중..." : "⬇️ 엑셀 다운로드"}
               </button>
             </div>
+
+            {room.history.length > 0 && (
+              <button
+                onClick={handleUndo}
+                disabled={undoing}
+                className="w-full py-3 rounded-2xl border border-amber-200 dark:border-amber-900 bg-amber-50/60 dark:bg-amber-950/20 text-xs font-bold text-amber-600 dark:text-amber-400 active:scale-[0.98] transition-all disabled:opacity-60"
+              >
+                {undoing ? "되돌리는 중..." : `↩️ 업로드 실행취소 (최근 ${room.history.length}번 전까지 가능)`}
+              </button>
+            )}
 
             {/* 지난 날짜 배정 (시간표 아래로 분리) */}
             {past.length > 0 && (

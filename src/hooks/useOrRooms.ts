@@ -10,6 +10,19 @@ export interface OrRoomMeta {
   created_at: string;
 }
 
+/** 엑셀 재업로드 실행취소용 스냅샷 (직전 시간표 상태 그대로) */
+export interface OrSnapshot {
+  view: string | null;
+  cases: OrCase[] | null;
+  assignments: Record<string, string>;
+  changes: OrChange[];
+  memos: Record<string, string>;
+  uploaded_at: string | null;
+}
+
+/** 최대 몇 번 전 업로드까지 되돌릴 수 있는지 */
+export const UNDO_LIMIT = 3;
+
 export interface OrRoom extends OrRoomMeta {
   cases: OrCase[] | null;
   assignments: Record<string, string>;
@@ -18,6 +31,8 @@ export interface OrRoom extends OrRoomMeta {
   events: OrEvent[];
   memos: Record<string, string>;
   uploaded_at: string | null;
+  /** 직전 업로드들의 스냅샷 (최신이 0번째), 최대 UNDO_LIMIT개 */
+  history: OrSnapshot[];
 }
 
 /** 방 목록에서 고를 수 있는 색 태그 프리셋 */
@@ -59,6 +74,7 @@ function rowToRoom(d: any): OrRoom {
     events: d.events ?? [],
     memos: d.memos ?? {},
     uploaded_at: d.uploaded_at ?? null,
+    history: d.history ?? [],
     created_at: d.created_at,
   };
 }
@@ -194,7 +210,10 @@ export function useOrRoom(id: string) {
     };
   }, [id]);
 
-  /** 시간표 저장(첫 업로드/재업로드). 변경 알림과 이어받은 배정·메모를 함께 기록 */
+  /**
+   * 시간표 저장(첫 업로드/재업로드). 변경 알림과 이어받은 배정·메모를 함께 기록.
+   * 기존에 시간표가 있었다면(재업로드) 그 상태를 history에 스냅샷으로 남겨 실행취소할 수 있게 한다.
+   */
   const saveTimetable = useCallback(
     async (
       view: ViewId,
@@ -203,9 +222,37 @@ export function useOrRoom(id: string) {
       changes: OrChange[],
       memos: Record<string, string>,
     ): Promise<boolean> => {
+      const { data: fresh, error: fetchErr } = await supabase.from(TABLE).select("*").eq("id", id).single();
+      if (fetchErr || !fresh) {
+        setError(friendlyError(fetchErr));
+        return false;
+      }
+      const prevHistory: OrSnapshot[] = fresh.history ?? [];
+      const history: OrSnapshot[] = fresh.cases
+        ? [
+            {
+              view: fresh.view ?? null,
+              cases: fresh.cases,
+              assignments: fresh.assignments ?? {},
+              changes: fresh.changes ?? [],
+              memos: fresh.memos ?? {},
+              uploaded_at: fresh.uploaded_at ?? null,
+            },
+            ...prevHistory,
+          ].slice(0, UNDO_LIMIT)
+        : prevHistory;
+
       const { data, error } = await supabase
         .from(TABLE)
-        .update({ view: String(view), cases, assignments, changes, memos, uploaded_at: new Date().toISOString() })
+        .update({
+          view: String(view),
+          cases,
+          assignments,
+          changes,
+          memos,
+          history,
+          uploaded_at: new Date().toISOString(),
+        })
         .eq("id", id)
         .select()
         .single();
@@ -219,6 +266,40 @@ export function useOrRoom(id: string) {
     },
     [id],
   );
+
+  /** 직전 업로드로 되돌리기 (history의 맨 앞 스냅샷 복원). 되돌릴 게 없으면 false */
+  const undoUpload = useCallback(async (): Promise<boolean> => {
+    const { data: fresh, error: fetchErr } = await supabase.from(TABLE).select("*").eq("id", id).single();
+    if (fetchErr || !fresh) {
+      setError(friendlyError(fetchErr));
+      return false;
+    }
+    const history: OrSnapshot[] = fresh.history ?? [];
+    const snap = history[0];
+    if (!snap) return false;
+
+    const { data, error } = await supabase
+      .from(TABLE)
+      .update({
+        view: snap.view,
+        cases: snap.cases,
+        assignments: snap.assignments,
+        changes: snap.changes,
+        memos: snap.memos,
+        uploaded_at: snap.uploaded_at,
+        history: history.slice(1),
+      })
+      .eq("id", id)
+      .select()
+      .single();
+    if (error || !data) {
+      setError(friendlyError(error));
+      return false;
+    }
+    setRoom(rowToRoom(data));
+    setError("");
+    return true;
+  }, [id]);
 
   /**
    * 공유 필드(배정·메모·외래·일정) 저장.
@@ -256,7 +337,7 @@ export function useOrRoom(id: string) {
     await supabase.from(TABLE).update({ changes: [] }).eq("id", id);
   }, [id]);
 
-  return { room, loading, error, saveTimetable, saveShared, clearChanges };
+  return { room, loading, error, saveTimetable, saveShared, clearChanges, undoUpload };
 }
 
 export type { SectionId };

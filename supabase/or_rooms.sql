@@ -11,6 +11,7 @@ create table if not exists or_rooms (
   memos jsonb not null default '{}'::jsonb,     -- 수술별 메모 { "caseIdx": "메모" }
   delete_pw text not null default '1234',       -- 방 삭제용 비밀번호
   color text,                                   -- 방 목록에서 구분용 색 태그 (hex, 예: '#75909C')
+  history jsonb not null default '[]'::jsonb,   -- 재업로드 실행취소용 직전 스냅샷들 (최대 3개, 최신이 0번째)
   uploaded_at timestamptz,                      -- 시간표 업로드 시각 ("기준" 표시용)
   created_at timestamptz not null default now()
 );
@@ -26,6 +27,8 @@ alter table or_rooms add column if not exists memos jsonb not null default '{}':
 alter table or_rooms add column if not exists delete_pw text not null default '1234';
 -- 방 목록 색 태그
 alter table or_rooms add column if not exists color text;
+-- 엑셀 재업로드 실행취소용 스냅샷
+alter table or_rooms add column if not exists history jsonb not null default '[]'::jsonb;
 
 -- 실시간 반영(다른 사람 변경이 내 화면에 바로 보이게). 이미 추가돼 있으면 그냥 넘어감.
 do $$ begin
