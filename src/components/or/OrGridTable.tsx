@@ -157,8 +157,8 @@ export const OrGridTable: React.FC<OrGridTableProps> = ({ grid, assignments, mem
         </thead>
         <tbody>
           {slots.map((t, ri) => {
-            // 13:30(오후 시작) 기점 가로 굵은 선
-            const pmLine = t === 13 * 60 + 30;
+            // 13:30(오후 시작)·17:00 기점 가로 굵은 선
+            const pmLine = t === 13 * 60 + 30 || t === 17 * 60;
             const pmTop = pmLine ? " border-t-2 border-t-slate-400 dark:border-t-slate-500" : "";
             // 병합 셀 테두리가 인접 빈칸과 충돌해 사라지지 않도록 inset 그림자로 확실히 그림
             const caseShadow = "inset 0 0 0 1px #64748b";
