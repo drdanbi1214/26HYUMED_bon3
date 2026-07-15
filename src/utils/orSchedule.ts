@@ -15,6 +15,8 @@ export interface OrCase {
   surgeon: string;
   /** 협진 열이 "Y"인 케이스 */
   referral: boolean;
+  /** 응급 열이 "Y"인 케이스 */
+  emergency?: boolean;
 }
 
 export type SectionId = 1 | 2;

@@ -16,7 +16,7 @@ import {
 
 const COLS = [
   "수술일자", "환자번호", "환자명", "수술실", "시작",
-  "수술명", "집도의", "소요", "상태", "취소일시", "협진",
+  "수술명", "집도의", "소요", "상태", "취소일시", "협진", "응급",
 ] as const;
 type ColKey = (typeof COLS)[number];
 const REQUIRED: ColKey[] = ["수술일자", "집도의"];
@@ -137,6 +137,7 @@ export async function parseOrExcel(buf: ArrayBuffer): Promise<OrCase[]> {
       opName: cellText(get(row, "수술명")) || "수술명 미정",
       surgeon: cellText(get(row, "집도의")) || "?",
       referral: cellText(get(row, "협진")).toUpperCase() === "Y",
+      emergency: cellText(get(row, "응급")).toUpperCase() === "Y",
     });
   }
   return out;
