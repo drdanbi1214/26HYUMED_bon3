@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
-import { useEhrAccounts, type EhrServer } from "@/hooks/useEhrAccounts";
+import {
+  useEhrAccounts,
+  type EhrServer,
+  type EhrAccount,
+  type EhrAccountFields,
+} from "@/hooks/useEhrAccounts";
 import { useToast } from "@/components/ui/Toast";
 
 const PIN = "1214";
@@ -14,11 +19,11 @@ interface EhrPageProps {
 
 /**
  * EHR 아이디: 전화 키패드(123456789*0#)에 1214를 입력하면
- * 서울/구리 서버별 공용계정 목록이 열림. 목록은 누구나 수정 가능(공유 DB).
+ * 서울/구리 서버별 공용계정 목록이 열림. 보안상 들어올 때마다 매번 입력해야 함.
  */
 export const EhrPage: React.FC<EhrPageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
-  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem("ehr_unlocked") === "1");
+  const [unlocked, setUnlocked] = useState(false);
 
   return (
     <>
@@ -30,16 +35,7 @@ export const EhrPage: React.FC<EhrPageProps> = ({ isDark, onToggleDark }) => {
       />
 
       <div className="space-y-6 animate-in fade-in slide-in-from-right duration-500 pb-16">
-        {unlocked ? (
-          <AccountBoxes />
-        ) : (
-          <Keypad
-            onUnlock={() => {
-              sessionStorage.setItem("ehr_unlocked", "1");
-              setUnlocked(true);
-            }}
-          />
-        )}
+        {unlocked ? <AccountBoxes /> : <Keypad onUnlock={() => setUnlocked(true)} />}
       </div>
     </>
   );
@@ -106,18 +102,27 @@ const Keypad: React.FC<{ onUnlock: () => void }> = ({ onUnlock }) => {
   );
 };
 
-/** 서울/구리 공용계정 박스 두 개. 누구나 ✏️로 수정 가능. */
+/** "7/18 14:30" 형식으로 수정 시각 표시 */
+const fmtTime = (iso: string) => {
+  const d = new Date(iso);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${d.getMonth() + 1}/${d.getDate()} ${hh}:${mm}`;
+};
+
+/** 서울/구리 공용계정 박스 두 개. ➕ 추가 / 계정별 ✏️ 수정. */
 const AccountBoxes: React.FC = () => {
-  const { accounts, loading, error, saving, save, refetch } = useEhrAccounts();
+  const { accounts, loading, error, saving, addAccount, updateAccount, deleteAccount, refetch } =
+    useEhrAccounts();
   const toast = useToast();
 
-  const handleSave = async (server: EhrServer, content: string): Promise<boolean> => {
-    const err = await save(server, content);
+  const run = async (p: Promise<string | null>, okMsg: string): Promise<boolean> => {
+    const err = await p;
     if (err) {
       toast.error(err);
       return false;
     }
-    toast.success("저장했어요.");
+    toast.success(okMsg);
     return true;
   };
 
@@ -152,26 +157,19 @@ const AccountBoxes: React.FC = () => {
     );
   }
 
+  const common = {
+    saving,
+    onAdd: (server: EhrServer, f: EhrAccountFields) => run(addAccount(server, f), "추가했어요."),
+    onUpdate: (id: string, f: EhrAccountFields) => run(updateAccount(id, f), "수정했어요."),
+    onDelete: (id: string) => run(deleteAccount(id), "삭제했어요."),
+  };
+
   return (
     <div className="space-y-4">
-      <AccountBox
-        server="seoul"
-        title="서울"
-        emoji="🏙️"
-        value={accounts.seoul}
-        saving={saving}
-        onSave={handleSave}
-      />
-      <AccountBox
-        server="guri"
-        title="구리"
-        emoji="🏥"
-        value={accounts.guri}
-        saving={saving}
-        onSave={handleSave}
-      />
+      <AccountBox server="seoul" title="서울" emoji="🏙️" list={accounts.seoul} {...common} />
+      <AccountBox server="guri" title="구리" emoji="🏥" list={accounts.guri} {...common} />
       <p className="text-center text-[10px] text-slate-400 dark:text-slate-600">
-        누구나 수정할 수 있어요. 사용 중인 계정은 표시해 두고, 다 쓴 계정은 돌려놔 주세요 🙏
+        누구나 추가·수정할 수 있어요. 수정 시각을 보고 최신 계정인지 확인해 주세요 🙏
       </p>
     </div>
   );
@@ -181,12 +179,14 @@ const AccountBox: React.FC<{
   server: EhrServer;
   title: string;
   emoji: string;
-  value: string;
+  list: EhrAccount[];
   saving: boolean;
-  onSave: (server: EhrServer, content: string) => Promise<boolean>;
-}> = ({ server, title, emoji, value, saving, onSave }) => {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState("");
+  onAdd: (server: EhrServer, fields: EhrAccountFields) => Promise<boolean>;
+  onUpdate: (id: string, fields: EhrAccountFields) => Promise<boolean>;
+  onDelete: (id: string) => Promise<boolean>;
+}> = ({ server, title, emoji, list, saving, onAdd, onUpdate, onDelete }) => {
+  const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl shadow-slate-900/10">
@@ -194,58 +194,164 @@ const AccountBox: React.FC<{
         <span className="text-sm font-black text-slate-700 dark:text-slate-200">
           {emoji} {title}
         </span>
-        {!editing && (
+        {!adding && (
           <button
             onClick={() => {
-              setDraft(value);
-              setEditing(true);
+              setAdding(true);
+              setEditingId(null);
             }}
-            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:scale-95 transition-all"
+            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-600 text-white shadow-sm active:scale-95 transition-all"
           >
-            ✏️ 수정
+            ➕ 추가
           </button>
         )}
       </div>
 
-      <div className="p-5">
-        {editing ? (
-          <div className="space-y-3">
-            <textarea
-              value={draft}
-              onChange={e => setDraft(e.target.value)}
-              rows={6}
-              placeholder={"사용 가능한 공용계정을 적어주세요\n예) hy1234 / pw1234! — 사용중(홍길동)"}
-              className="w-full px-3.5 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all resize-y"
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setEditing(false)}
-                disabled={saving}
-                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 active:scale-95 transition-all"
-              >
-                취소
-              </button>
-              <button
-                onClick={async () => {
-                  const ok = await onSave(server, draft);
-                  if (ok) setEditing(false);
-                }}
-                disabled={saving}
-                className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md active:scale-95 transition-all disabled:opacity-50"
-              >
-                {saving ? "저장 중…" : "저장"}
-              </button>
-            </div>
-          </div>
-        ) : value.trim() ? (
-          <pre className="whitespace-pre-wrap break-words font-sans text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-            {value}
-          </pre>
-        ) : (
+      <div className="p-4 space-y-3">
+        {adding && (
+          <AccountForm
+            saving={saving}
+            submitLabel="추가"
+            onSubmit={async f => {
+              const ok = await onAdd(server, f);
+              if (ok) setAdding(false);
+              return ok;
+            }}
+            onCancel={() => setAdding(false)}
+          />
+        )}
+
+        {list.length === 0 && !adding && (
           <p className="text-xs text-slate-400 text-center py-4">
-            아직 등록된 계정이 없어요. ✏️ 수정을 눌러 추가해 주세요.
+            아직 등록된 계정이 없어요. ➕ 추가를 눌러 등록해 주세요.
           </p>
         )}
+
+        {list.map(acc =>
+          editingId === acc.id ? (
+            <AccountForm
+              key={acc.id}
+              initial={acc}
+              saving={saving}
+              submitLabel="저장"
+              onSubmit={async f => {
+                const ok = await onUpdate(acc.id, f);
+                if (ok) setEditingId(null);
+                return ok;
+              }}
+              onCancel={() => setEditingId(null)}
+              onDelete={async () => {
+                if (!window.confirm("이 계정을 삭제할까요?")) return;
+                const ok = await onDelete(acc.id);
+                if (ok) setEditingId(null);
+              }}
+            />
+          ) : (
+            <div
+              key={acc.id}
+              className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 px-4 py-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-1 text-sm text-slate-700 dark:text-slate-200">
+                  <p className="break-all">
+                    <span className="text-[11px] font-bold text-slate-400 mr-1.5">ID</span>
+                    <span className="font-bold">{acc.loginId || "—"}</span>
+                  </p>
+                  <p className="break-all">
+                    <span className="text-[11px] font-bold text-slate-400 mr-1.5">비밀번호</span>
+                    {acc.password || "—"}
+                  </p>
+                  <p className="break-all">
+                    <span className="text-[11px] font-bold text-slate-400 mr-1.5">인증서</span>
+                    {acc.cert || "—"}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingId(acc.id);
+                    setAdding(false);
+                  }}
+                  className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:scale-95 transition-all"
+                >
+                  ✏️ 수정
+                </button>
+              </div>
+              <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 text-right">
+                🕐 {fmtTime(acc.updatedAt)} 기준
+              </p>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+};
+
+/** ID/비밀번호/인증서 3칸 입력 폼. 추가·수정 겸용(수정 시 onDelete로 삭제 버튼 표시). */
+const AccountForm: React.FC<{
+  initial?: EhrAccountFields;
+  saving: boolean;
+  submitLabel: string;
+  onSubmit: (fields: EhrAccountFields) => Promise<boolean>;
+  onCancel: () => void;
+  onDelete?: () => void;
+}> = ({ initial, saving, submitLabel, onSubmit, onCancel, onDelete }) => {
+  const [loginId, setLoginId] = useState(initial?.loginId ?? "");
+  const [password, setPassword] = useState(initial?.password ?? "");
+  const [cert, setCert] = useState(initial?.cert ?? "");
+
+  const inputCls =
+    "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all";
+
+  return (
+    <div className="rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 p-4 space-y-2.5">
+      {(
+        [
+          ["ID", loginId, setLoginId, "예) hyumc1234"],
+          ["비밀번호", password, setPassword, "예) pw1234!"],
+          ["인증서", cert, setCert, "예) 인증서 비밀번호"],
+        ] as const
+      ).map(([label, value, set, placeholder]) => (
+        <label key={label} className="block">
+          <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+            {label}
+          </span>
+          <input
+            type="text"
+            value={value}
+            onChange={e => set(e.target.value)}
+            placeholder={placeholder}
+            className={inputCls}
+          />
+        </label>
+      ))}
+
+      <div className="flex items-center pt-1">
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            disabled={saving}
+            className="text-xs font-bold px-3 py-2 rounded-xl text-red-500 border border-red-200 dark:border-red-900/40 active:scale-95 transition-all disabled:opacity-50"
+          >
+            🗑️ 삭제
+          </button>
+        )}
+        <div className="flex gap-2 ml-auto">
+          <button
+            onClick={onCancel}
+            disabled={saving}
+            className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 active:scale-95 transition-all"
+          >
+            취소
+          </button>
+          <button
+            onClick={() => onSubmit({ loginId, password, cert })}
+            disabled={saving || !loginId.trim()}
+            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md active:scale-95 transition-all disabled:opacity-50"
+          >
+            {saving ? "저장 중…" : submitLabel}
+          </button>
+        </div>
       </div>
     </div>
   );

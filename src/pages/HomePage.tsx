@@ -240,7 +240,7 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
         </div>
 
         <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
-          copyright© 이단비, ver3. 수술 시간표·내 캘린더에 일정 넣기·일실기 알림·테마 배경이 추가되었습니다
+          copyright© 이단비, ver4. EHR 아이디·구리병원 셔틀조회·수술 시간표 협진/응급 표시·업로드 실행취소가 추가되었습니다
         </p>
 
         {/* CHERRY BLOSSOM FEATURE — remove next block when done */}

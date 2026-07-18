@@ -5,12 +5,27 @@ const NOT_CONFIGURED_MSG = "Supabase가 설정되지 않아 계정 목록을 불
 
 export type EhrServer = "seoul" | "guri";
 
+export interface EhrAccount {
+  id: string;
+  server: EhrServer;
+  loginId: string;
+  password: string;
+  cert: string;
+  updatedAt: string;
+}
+
+export interface EhrAccountFields {
+  loginId: string;
+  password: string;
+  cert: string;
+}
+
 /**
- * ehr_accounts 테이블(서울/구리 서버별 공용계정 목록 텍스트)을 읽고 저장.
- * 누구나 수정 가능한 공유 데이터 — 저장은 server 키로 upsert.
+ * ehr_accounts 테이블(서울/구리 서버별 공용계정, 계정당 한 행)을 읽고 추가/수정/삭제.
+ * 누구나 수정 가능한 공유 데이터 — 변경 후 refetch로 최신 목록을 다시 가져옴.
  */
 export function useEhrAccounts() {
-  const [accounts, setAccounts] = useState<Record<EhrServer, string>>({ seoul: "", guri: "" });
+  const [accounts, setAccounts] = useState<Record<EhrServer, EhrAccount[]>>({ seoul: [], guri: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -21,15 +36,25 @@ export function useEhrAccounts() {
       setError(NOT_CONFIGURED_MSG);
       return;
     }
-    setLoading(true);
     setError(null);
-    const { data: rows, error } = await supabase.from("ehr_accounts").select("server, content");
+    const { data: rows, error } = await supabase
+      .from("ehr_accounts")
+      .select("id, server, login_id, password, cert, updated_at")
+      .order("created_at", { ascending: true });
     if (error) {
       setError(error.message);
     } else {
-      const next: Record<EhrServer, string> = { seoul: "", guri: "" };
+      const next: Record<EhrServer, EhrAccount[]> = { seoul: [], guri: [] };
       for (const r of rows ?? []) {
-        if (r.server === "seoul" || r.server === "guri") next[r.server as EhrServer] = r.content ?? "";
+        if (r.server !== "seoul" && r.server !== "guri") continue;
+        next[r.server as EhrServer].push({
+          id: r.id,
+          server: r.server,
+          loginId: r.login_id ?? "",
+          password: r.password ?? "",
+          cert: r.cert ?? "",
+          updatedAt: r.updated_at,
+        });
       }
       setAccounts(next);
     }
@@ -41,17 +66,56 @@ export function useEhrAccounts() {
   }, [refetch]);
 
   /** 성공하면 null, 실패하면 에러 메시지를 반환 */
-  const save = useCallback(async (server: EhrServer, content: string): Promise<string | null> => {
-    if (!isSupabaseConfigured) return NOT_CONFIGURED_MSG;
-    setSaving(true);
-    const { error } = await supabase
-      .from("ehr_accounts")
-      .upsert([{ server, content, updated_at: new Date().toISOString() }]);
-    setSaving(false);
-    if (error) return `저장 실패: ${error.message}`;
-    setAccounts(prev => ({ ...prev, [server]: content }));
-    return null;
-  }, []);
+  const addAccount = useCallback(
+    async (server: EhrServer, fields: EhrAccountFields): Promise<string | null> => {
+      if (!isSupabaseConfigured) return NOT_CONFIGURED_MSG;
+      setSaving(true);
+      const { error } = await supabase.from("ehr_accounts").insert([
+        { server, login_id: fields.loginId, password: fields.password, cert: fields.cert },
+      ]);
+      setSaving(false);
+      if (error) return `추가 실패: ${error.message}`;
+      await refetch();
+      return null;
+    },
+    [refetch]
+  );
 
-  return { accounts, loading, error, saving, save, refetch };
+  /** 성공하면 null, 실패하면 에러 메시지를 반환 */
+  const updateAccount = useCallback(
+    async (id: string, fields: EhrAccountFields): Promise<string | null> => {
+      if (!isSupabaseConfigured) return NOT_CONFIGURED_MSG;
+      setSaving(true);
+      const { error } = await supabase
+        .from("ehr_accounts")
+        .update({
+          login_id: fields.loginId,
+          password: fields.password,
+          cert: fields.cert,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+      setSaving(false);
+      if (error) return `수정 실패: ${error.message}`;
+      await refetch();
+      return null;
+    },
+    [refetch]
+  );
+
+  /** 성공하면 null, 실패하면 에러 메시지를 반환 */
+  const deleteAccount = useCallback(
+    async (id: string): Promise<string | null> => {
+      if (!isSupabaseConfigured) return NOT_CONFIGURED_MSG;
+      setSaving(true);
+      const { error } = await supabase.from("ehr_accounts").delete().eq("id", id);
+      setSaving(false);
+      if (error) return `삭제 실패: ${error.message}`;
+      await refetch();
+      return null;
+    },
+    [refetch]
+  );
+
+  return { accounts, loading, error, saving, addAccount, updateAccount, deleteAccount, refetch };
 }

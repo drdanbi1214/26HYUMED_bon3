@@ -1,15 +1,17 @@
--- EHR 공용계정 안내 테이블. 서울/구리 서버별로 사용 가능한 공용계정 목록을 텍스트로 저장.
--- 누구나 읽고 수정할 수 있는 구조 (hospital_shuttle과 같은 open policy).
--- Supabase 대시보드 → SQL Editor에서 1회 실행.
-create table if not exists ehr_accounts (
-  server text primary key,                      -- 'seoul' | 'guri'
-  content text not null default '',             -- 공용계정 목록 (자유 텍스트)
+-- EHR 공용계정 테이블 v2: 계정을 한 건씩 행으로 저장 (ID/비밀번호/인증서 + 수정 시각).
+-- 이전 버전(서버별 텍스트 한 덩어리)을 이미 실행했더라도 이 파일을 다시 실행하면 새 구조로 교체됩니다.
+-- Supabase 대시보드 → SQL Editor에서 실행.
+drop table if exists ehr_accounts;
+
+create table ehr_accounts (
+  id uuid primary key default gen_random_uuid(),
+  server text not null,                         -- 'seoul' | 'guri'
+  login_id text not null default '',            -- EHR ID
+  password text not null default '',            -- 비밀번호
+  cert text not null default '',                -- 인증서 (비밀번호 등)
+  created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
 alter table ehr_accounts enable row level security;
 create policy "ehr_accounts_all" on ehr_accounts for all using (true) with check (true);
-
--- 서울/구리 두 행을 미리 만들어 둠 (이미 있으면 건드리지 않음)
-insert into ehr_accounts (server, content) values ('seoul', ''), ('guri', '')
-on conflict (server) do nothing;
