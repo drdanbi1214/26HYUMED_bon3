@@ -11,6 +11,7 @@ export interface EhrAccount {
   loginId: string;
   password: string;
   cert: string;
+  note: string;
   updatedAt: string;
 }
 
@@ -18,6 +19,7 @@ export interface EhrAccountFields {
   loginId: string;
   password: string;
   cert: string;
+  note: string;
 }
 
 /**
@@ -39,7 +41,7 @@ export function useEhrAccounts() {
     setError(null);
     const { data: rows, error } = await supabase
       .from("ehr_accounts")
-      .select("id, server, login_id, password, cert, updated_at")
+      .select("id, server, login_id, password, cert, note, updated_at")
       .order("created_at", { ascending: true });
     if (error) {
       setError(error.message);
@@ -53,6 +55,7 @@ export function useEhrAccounts() {
           loginId: r.login_id ?? "",
           password: r.password ?? "",
           cert: r.cert ?? "",
+          note: r.note ?? "",
           updatedAt: r.updated_at,
         });
       }
@@ -71,7 +74,7 @@ export function useEhrAccounts() {
       if (!isSupabaseConfigured) return NOT_CONFIGURED_MSG;
       setSaving(true);
       const { error } = await supabase.from("ehr_accounts").insert([
-        { server, login_id: fields.loginId, password: fields.password, cert: fields.cert },
+        { server, login_id: fields.loginId, password: fields.password, cert: fields.cert, note: fields.note },
       ]);
       setSaving(false);
       if (error) return `추가 실패: ${error.message}`;
@@ -92,6 +95,7 @@ export function useEhrAccounts() {
           login_id: fields.loginId,
           password: fields.password,
           cert: fields.cert,
+          note: fields.note,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);

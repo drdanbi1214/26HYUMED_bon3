@@ -187,6 +187,7 @@ const AccountBox: React.FC<{
 }> = ({ server, title, emoji, list, saving, onAdd, onUpdate, onDelete }) => {
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [noteOpenId, setNoteOpenId] = useState<string | null>(null);
 
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl shadow-slate-900/10">
@@ -266,16 +267,42 @@ const AccountBox: React.FC<{
                     {acc.cert || "—"}
                   </p>
                 </div>
-                <button
-                  onClick={() => {
-                    setEditingId(acc.id);
-                    setAdding(false);
-                  }}
-                  className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:scale-95 transition-all"
-                >
-                  ✏️ 수정
-                </button>
+                <div className="shrink-0 flex flex-col gap-1.5">
+                  <button
+                    onClick={() => {
+                      setEditingId(acc.id);
+                      setAdding(false);
+                    }}
+                    className="text-xs font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 active:scale-95 transition-all"
+                  >
+                    ✏️ 수정
+                  </button>
+                  <button
+                    onClick={() => setNoteOpenId(noteOpenId === acc.id ? null : acc.id)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border active:scale-95 transition-all ${
+                      acc.note.trim()
+                        ? "bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/40 text-amber-700 dark:text-amber-400"
+                        : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500"
+                    }`}
+                  >
+                    ⚠️ 주의사항
+                  </button>
+                </div>
               </div>
+              {noteOpenId === acc.id && (
+                <NoteBox
+                  acc={acc}
+                  saving={saving}
+                  onSave={note =>
+                    onUpdate(acc.id, {
+                      loginId: acc.loginId,
+                      password: acc.password,
+                      cert: acc.cert,
+                      note,
+                    })
+                  }
+                />
+              )}
               <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 text-right">
                 🕐 {fmtTime(acc.updatedAt)} 기준
               </p>
@@ -287,7 +314,75 @@ const AccountBox: React.FC<{
   );
 };
 
-/** ID/비밀번호/인증서 3칸 입력 폼. 추가·수정 겸용(수정 시 onDelete로 삭제 버튼 표시). */
+/** 주의사항 펼침 패널. 보기 상태에서 ✏️로 바로 수정 가능. */
+const NoteBox: React.FC<{
+  acc: EhrAccount;
+  saving: boolean;
+  onSave: (note: string) => Promise<boolean>;
+}> = ({ acc, saving, onSave }) => {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  return (
+    <div className="mt-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-900/10 p-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">⚠️ 주의사항</span>
+        {!editing && (
+          <button
+            onClick={() => {
+              setDraft(acc.note);
+              setEditing(true);
+            }}
+            className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-900/40 text-amber-700 dark:text-amber-400 active:scale-95 transition-all"
+          >
+            ✏️ 수정
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <div className="space-y-2">
+          <textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            rows={3}
+            placeholder={"예) 3/20까지만 사용 가능\n예) 인증서 로그인만 됨"}
+            className="w-full px-3 py-2.5 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-amber-500/30 transition-all resize-y"
+          />
+          <div className="flex gap-2 justify-end">
+            <button
+              onClick={() => setEditing(false)}
+              disabled={saving}
+              className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-600 dark:text-slate-300 active:scale-95 transition-all"
+            >
+              취소
+            </button>
+            <button
+              onClick={async () => {
+                const ok = await onSave(draft);
+                if (ok) setEditing(false);
+              }}
+              disabled={saving}
+              className="px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[11px] font-bold shadow-sm active:scale-95 transition-all disabled:opacity-50"
+            >
+              {saving ? "저장 중…" : "저장"}
+            </button>
+          </div>
+        </div>
+      ) : acc.note.trim() ? (
+        <pre className="whitespace-pre-wrap break-words font-sans text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+          {acc.note}
+        </pre>
+      ) : (
+        <p className="text-xs text-slate-400 py-1">
+          등록된 주의사항이 없어요. ✏️ 수정을 눌러 적어 주세요.
+        </p>
+      )}
+    </div>
+  );
+};
+
+/** ID/비밀번호/인증서/주의사항 입력 폼. 추가·수정 겸용(수정 시 onDelete로 삭제 버튼 표시). */
 const AccountForm: React.FC<{
   initial?: EhrAccountFields;
   saving: boolean;
@@ -299,6 +394,7 @@ const AccountForm: React.FC<{
   const [loginId, setLoginId] = useState(initial?.loginId ?? "");
   const [password, setPassword] = useState(initial?.password ?? "");
   const [cert, setCert] = useState(initial?.cert ?? "");
+  const [note, setNote] = useState(initial?.note ?? "");
 
   const inputCls =
     "w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-blue-500/30 transition-all";
@@ -326,6 +422,19 @@ const AccountForm: React.FC<{
         </label>
       ))}
 
+      <label className="block">
+        <span className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">
+          ⚠️ 주의사항
+        </span>
+        <textarea
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          rows={3}
+          placeholder={"예) 3/20까지만 사용 가능\n예) 인증서 로그인만 됨"}
+          className={`${inputCls} resize-y`}
+        />
+      </label>
+
       <div className="flex items-center pt-1">
         {onDelete && (
           <button
@@ -345,7 +454,7 @@ const AccountForm: React.FC<{
             취소
           </button>
           <button
-            onClick={() => onSubmit({ loginId, password, cert })}
+            onClick={() => onSubmit({ loginId, password, cert, note })}
             disabled={saving || !loginId.trim()}
             className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md active:scale-95 transition-all disabled:opacity-50"
           >
