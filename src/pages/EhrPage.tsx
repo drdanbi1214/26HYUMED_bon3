@@ -273,6 +273,14 @@ const AccountBox: React.FC<{
                     <span className="text-[11px] font-bold text-slate-400 mr-1.5">생년월일</span>
                     {acc.birth || "—"}
                   </p>
+                  {acc.note.trim() && (
+                    <p className="whitespace-pre-wrap break-words text-amber-700 dark:text-amber-400">
+                      <span className="text-[11px] font-bold text-amber-600 dark:text-amber-500 mr-1.5">
+                        ⚠️ 주의사항
+                      </span>
+                      {acc.note}
+                    </p>
+                  )}
                 </div>
                 <button
                   onClick={() => {
@@ -284,16 +292,6 @@ const AccountBox: React.FC<{
                   ✏️ 수정
                 </button>
               </div>
-              {acc.note.trim() && (
-                <div className="mt-3 rounded-xl border border-amber-200 dark:border-amber-900/40 bg-amber-50/60 dark:bg-amber-900/10 p-3">
-                  <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mb-1">
-                    ⚠️ 주의사항
-                  </p>
-                  <pre className="whitespace-pre-wrap break-words font-sans text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                    {acc.note}
-                  </pre>
-                </div>
-              )}
               <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500 text-right">
                 🕐 {fmtTime(acc.updatedAt)} 기준
               </p>
