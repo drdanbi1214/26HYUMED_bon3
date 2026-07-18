@@ -8,6 +8,7 @@ export type EhrServer = "seoul" | "guri";
 export interface EhrAccount {
   id: string;
   server: EhrServer;
+  name: string;
   loginId: string;
   password: string;
   cert: string;
@@ -17,6 +18,7 @@ export interface EhrAccount {
 }
 
 export interface EhrAccountFields {
+  name: string;
   loginId: string;
   password: string;
   cert: string;
@@ -43,7 +45,7 @@ export function useEhrAccounts() {
     setError(null);
     const { data: rows, error } = await supabase
       .from("ehr_accounts")
-      .select("id, server, login_id, password, cert, birth, note, updated_at")
+      .select("id, server, name, login_id, password, cert, birth, note, updated_at")
       .order("created_at", { ascending: true });
     if (error) {
       setError(error.message);
@@ -54,6 +56,7 @@ export function useEhrAccounts() {
         next[r.server as EhrServer].push({
           id: r.id,
           server: r.server,
+          name: r.name ?? "",
           loginId: r.login_id ?? "",
           password: r.password ?? "",
           cert: r.cert ?? "",
@@ -77,7 +80,7 @@ export function useEhrAccounts() {
       if (!isSupabaseConfigured) return NOT_CONFIGURED_MSG;
       setSaving(true);
       const { error } = await supabase.from("ehr_accounts").insert([
-        { server, login_id: fields.loginId, password: fields.password, cert: fields.cert, birth: fields.birth, note: fields.note },
+        { server, name: fields.name, login_id: fields.loginId, password: fields.password, cert: fields.cert, birth: fields.birth, note: fields.note },
       ]);
       setSaving(false);
       if (error) return `추가 실패: ${error.message}`;
@@ -95,6 +98,7 @@ export function useEhrAccounts() {
       const { error } = await supabase
         .from("ehr_accounts")
         .update({
+          name: fields.name,
           login_id: fields.loginId,
           password: fields.password,
           cert: fields.cert,

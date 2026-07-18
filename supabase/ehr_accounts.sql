@@ -9,6 +9,7 @@
 create table if not exists ehr_accounts (
   id uuid primary key default gen_random_uuid(),
   server text not null,                         -- 'seoul' | 'guri'
+  name text not null default '',                -- 이름
   login_id text not null default '',            -- EHR ID
   password text not null default '',            -- 비밀번호
   cert text not null default '',                -- 인증서 (비밀번호 등)
@@ -18,9 +19,10 @@ create table if not exists ehr_accounts (
   updated_at timestamptz not null default now()
 );
 
--- 주의사항/생년월일 컬럼이 없던 이전 버전에서 넘어온 경우 컬럼만 추가
+-- 주의사항/생년월일/이름 컬럼이 없던 이전 버전에서 넘어온 경우 컬럼만 추가
 alter table ehr_accounts add column if not exists note text not null default '';
 alter table ehr_accounts add column if not exists birth text not null default '';
+alter table ehr_accounts add column if not exists name text not null default '';
 
 alter table ehr_accounts enable row level security;
 drop policy if exists "ehr_accounts_all" on ehr_accounts;

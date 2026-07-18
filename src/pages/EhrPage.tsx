@@ -255,6 +255,10 @@ const AccountBox: React.FC<{
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 space-y-1 text-sm text-slate-700 dark:text-slate-200">
                   <p className="break-all">
+                    <span className="text-[11px] font-bold text-slate-400 mr-1.5">이름</span>
+                    <span className="font-bold">{acc.name || "—"}</span>
+                  </p>
+                  <p className="break-all">
                     <span className="text-[11px] font-bold text-slate-400 mr-1.5">ID</span>
                     <span className="font-bold">{acc.loginId || "—"}</span>
                   </p>
@@ -299,6 +303,7 @@ const AccountBox: React.FC<{
                   saving={saving}
                   onSave={note =>
                     onUpdate(acc.id, {
+                      name: acc.name,
                       loginId: acc.loginId,
                       password: acc.password,
                       cert: acc.cert,
@@ -396,6 +401,7 @@ const AccountForm: React.FC<{
   onCancel: () => void;
   onDelete?: () => void;
 }> = ({ initial, saving, submitLabel, onSubmit, onCancel, onDelete }) => {
+  const [name, setName] = useState(initial?.name ?? "");
   const [loginId, setLoginId] = useState(initial?.loginId ?? "");
   const [password, setPassword] = useState(initial?.password ?? "");
   const [cert, setCert] = useState(initial?.cert ?? "");
@@ -409,6 +415,7 @@ const AccountForm: React.FC<{
     <div className="rounded-2xl border border-blue-200 dark:border-blue-900/40 bg-blue-50/40 dark:bg-blue-900/10 p-4 space-y-2.5">
       {(
         [
+          ["이름", name, setName, "예) 홍길동"],
           ["ID", loginId, setLoginId, "예) hyumc1234"],
           ["비밀번호", password, setPassword, "예) pw1234!"],
           ["인증서", cert, setCert, "예) 인증서 비밀번호"],
@@ -461,7 +468,7 @@ const AccountForm: React.FC<{
             취소
           </button>
           <button
-            onClick={() => onSubmit({ loginId, password, cert, birth, note })}
+            onClick={() => onSubmit({ name, loginId, password, cert, birth, note })}
             disabled={saving || !loginId.trim()}
             className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md active:scale-95 transition-all disabled:opacity-50"
           >
