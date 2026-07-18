@@ -266,6 +266,10 @@ const AccountBox: React.FC<{
                     <span className="text-[11px] font-bold text-slate-400 mr-1.5">인증서</span>
                     {acc.cert || "—"}
                   </p>
+                  <p className="break-all">
+                    <span className="text-[11px] font-bold text-slate-400 mr-1.5">생년월일</span>
+                    {acc.birth || "—"}
+                  </p>
                 </div>
                 <div className="shrink-0 flex flex-col gap-1.5">
                   <button
@@ -298,6 +302,7 @@ const AccountBox: React.FC<{
                       loginId: acc.loginId,
                       password: acc.password,
                       cert: acc.cert,
+                      birth: acc.birth,
                       note,
                     })
                   }
@@ -394,6 +399,7 @@ const AccountForm: React.FC<{
   const [loginId, setLoginId] = useState(initial?.loginId ?? "");
   const [password, setPassword] = useState(initial?.password ?? "");
   const [cert, setCert] = useState(initial?.cert ?? "");
+  const [birth, setBirth] = useState(initial?.birth ?? "");
   const [note, setNote] = useState(initial?.note ?? "");
 
   const inputCls =
@@ -406,6 +412,7 @@ const AccountForm: React.FC<{
           ["ID", loginId, setLoginId, "예) hyumc1234"],
           ["비밀번호", password, setPassword, "예) pw1234!"],
           ["인증서", cert, setCert, "예) 인증서 비밀번호"],
+          ["생년월일", birth, setBirth, "예) 991214"],
         ] as const
       ).map(([label, value, set, placeholder]) => (
         <label key={label} className="block">
@@ -454,7 +461,7 @@ const AccountForm: React.FC<{
             취소
           </button>
           <button
-            onClick={() => onSubmit({ loginId, password, cert, note })}
+            onClick={() => onSubmit({ loginId, password, cert, birth, note })}
             disabled={saving || !loginId.trim()}
             className="px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-md active:scale-95 transition-all disabled:opacity-50"
           >
