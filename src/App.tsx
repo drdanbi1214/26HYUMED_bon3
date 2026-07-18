@@ -13,6 +13,7 @@ import { RestaurantDetailPage } from "@/pages/RestaurantDetailPage";
 import { MatePage } from "@/pages/MatePage";
 import { OrSchedulePage } from "@/pages/OrSchedulePage";
 import { OrRoomPage } from "@/pages/OrRoomPage";
+import { EhrPage } from "@/pages/EhrPage";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
 import { useTheme } from "@/hooks/useTheme";
@@ -71,6 +72,7 @@ export const App: React.FC = () => {
                 <Route path="/mate" element={<MatePage {...commonProps} />} />
                 <Route path="/or-schedule" element={<OrSchedulePage {...commonProps} />} />
                 <Route path="/or-schedule/room/:id" element={<OrRoomPage {...commonProps} />} />
+                <Route path="/ehr" element={<EhrPage {...commonProps} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Shell>

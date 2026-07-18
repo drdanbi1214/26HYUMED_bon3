@@ -233,6 +233,10 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span>교수님 미리뵙기</span>
             <span className="text-xl">{isBaseball ? "⚾" : "👨‍🏫"}</span>
           </button>
+          <button onClick={() => navigate("/ehr")} className={gridBtn(9)}>
+            <span className="text-xl">{isBaseball ? "⚾" : "🖥️"}</span>
+            <span>EHR 아이디</span>
+          </button>
         </div>
 
         <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
