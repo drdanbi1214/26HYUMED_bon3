@@ -210,9 +210,9 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span>수술 시간표</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🏥"}</span>
           </button>
-          <button onClick={() => navigate("/restaurants")} className={gridBtn(5)}>
-            <span>맛집인계</span>
-            <span className="text-xl">{isBaseball ? "⚾" : "🥄"}</span>
+          <button onClick={() => navigate("/wiki")} className={gridBtn(5)}>
+            <span>실습나무위키</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "🌳"}</span>
           </button>
           <button
             onClick={() => navigate("/shuttle")}
@@ -237,10 +237,14 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">{isBaseball ? "⚾" : "🖥️"}</span>
             <span>EHR 아이디</span>
           </button>
+          <button onClick={() => navigate("/restaurants")} className={gridBtn(10, "gap-3 col-span-2")}>
+            <span>맛집인계</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "🥄"}</span>
+          </button>
         </div>
 
         <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
-          copyright© 이단비, ver4. EHR 아이디·구리병원 셔틀조회·수술 시간표 협진/응급 표시·업로드 실행취소가 추가되었습니다
+          copyright© 이단비, ver5. 실습나무위키가 추가되었습니다 🌳
         </p>
 
         {/* CHERRY BLOSSOM FEATURE — remove next block when done */}

@@ -14,6 +14,8 @@ import { MatePage } from "@/pages/MatePage";
 import { OrSchedulePage } from "@/pages/OrSchedulePage";
 import { OrRoomPage } from "@/pages/OrRoomPage";
 import { EhrPage } from "@/pages/EhrPage";
+import { WikiListPage } from "@/pages/WikiListPage";
+import { WikiDocPage } from "@/pages/WikiDocPage";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
 import { useTheme } from "@/hooks/useTheme";
@@ -73,6 +75,8 @@ export const App: React.FC = () => {
                 <Route path="/or-schedule" element={<OrSchedulePage {...commonProps} />} />
                 <Route path="/or-schedule/room/:id" element={<OrRoomPage {...commonProps} />} />
                 <Route path="/ehr" element={<EhrPage {...commonProps} />} />
+                <Route path="/wiki" element={<WikiListPage {...commonProps} />} />
+                <Route path="/wiki/:dept" element={<WikiDocPage {...commonProps} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Shell>
