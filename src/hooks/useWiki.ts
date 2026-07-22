@@ -3,7 +3,11 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 const NOT_CONFIGURED_MSG = "Supabase가 설정되지 않아 위키를 불러올 수 없어요.";
 
-/** 과 목록 페이지용: 과 → 최근 수정 시각 (문서가 있는 과만 키 존재) */
+/** 문서 제목 → URL 경로. '/'가 든 하위 문서(예: 외과/회진)도 세그먼트별로 안전하게 인코딩 */
+export const wikiHref = (title: string) =>
+  `/wiki/${title.split("/").map(encodeURIComponent).join("/")}`;
+
+/** 대문 페이지용: 문서 제목 → 최근 수정 시각 (내용이 있는 문서만 키 존재) */
 export function useWikiIndex() {
   const [index, setIndex] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);

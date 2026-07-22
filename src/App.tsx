@@ -76,7 +76,7 @@ export const App: React.FC = () => {
                 <Route path="/or-schedule/room/:id" element={<OrRoomPage {...commonProps} />} />
                 <Route path="/ehr" element={<EhrPage {...commonProps} />} />
                 <Route path="/wiki" element={<WikiListPage {...commonProps} />} />
-                <Route path="/wiki/:dept" element={<WikiDocPage {...commonProps} />} />
+                <Route path="/wiki/*" element={<WikiDocPage {...commonProps} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Shell>

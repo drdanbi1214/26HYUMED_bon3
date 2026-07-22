@@ -3,9 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { WikiGate } from "@/components/wiki/WikiGate";
 import { WikiContent } from "@/components/wiki/WikiContent";
-import { useWikiDoc, type WikiRevision } from "@/hooks/useWiki";
+import { useWikiDoc, useWikiIndex, wikiHref, type WikiRevision } from "@/hooks/useWiki";
 import { sliceSection } from "@/utils/wikiMarkup";
-import { WIKI_DEPTS } from "@/data/wikiDepts";
 import { useToast } from "@/components/ui/Toast";
 
 const NAMU_GREEN = "#00a495";
@@ -25,19 +24,8 @@ const fmtShort = (iso: string) => {
 
 // 빈 문서를 처음 편집할 때 넣어주는 뼈대
 const TEMPLATE = `== 개요 ==
-어떤 과인지, 실습 분위기가 어떤지 간단히 적어주세요.
-
-== 실습 꿀팁 ==
- * 여기에 꿀팁을 적어주세요.
-
-== 교수님별 특징 ==
- *
-
-== 시험/과제 ==
- *
-
-== 주의사항 ==
- * `;
+내용을 적어주세요.
+`;
 
 interface WikiDocPageProps {
   isDark: boolean;
@@ -46,8 +34,14 @@ interface WikiDocPageProps {
 
 export const WikiDocPage: React.FC<WikiDocPageProps> = ({ isDark, onToggleDark }) => {
   const navigate = useNavigate();
-  const { dept: raw = "" } = useParams();
-  const dept = decodeURIComponent(raw);
+  // 하위 문서(외과/회진)도 받을 수 있게 /wiki/* 스플랫 라우트 사용
+  const { "*": splat = "" } = useParams();
+  const title = splat.split("/").filter(Boolean).map(decodeURIComponent).join("/");
+
+  useEffect(() => {
+    if (!title) navigate("/wiki", { replace: true });
+  }, [title, navigate]);
+  if (!title) return null;
 
   return (
     <>
@@ -59,7 +53,7 @@ export const WikiDocPage: React.FC<WikiDocPageProps> = ({ isDark, onToggleDark }
       />
       <div className="space-y-6 animate-in fade-in slide-in-from-right duration-500 pb-16">
         <WikiGate>
-          <DocBody dept={dept} />
+          <DocBody title={title} />
         </WikiGate>
       </div>
     </>
@@ -68,11 +62,19 @@ export const WikiDocPage: React.FC<WikiDocPageProps> = ({ isDark, onToggleDark }
 
 type Mode = "view" | "edit" | "history";
 
-const DocBody: React.FC<{ dept: string }> = ({ dept }) => {
+const DocBody: React.FC<{ title: string }> = ({ title }) => {
   const navigate = useNavigate();
   const toast = useToast();
   const { content, updatedAt, loading, error, saving, refetch, save, listRevisions } =
-    useWikiDoc(dept);
+    useWikiDoc(title);
+  const { index } = useWikiIndex();
+
+  const existingTitles = Object.keys(index);
+  // 계층: "외과/회진" → 상위 문서 "외과", 하위 문서는 "제목/…"으로 시작하는 문서들
+  const parent = title.includes("/") ? title.split("/").slice(0, -1).join("/") : null;
+  const children = existingTitles
+    .filter(t => t.startsWith(`${title}/`))
+    .sort((a, b) => a.localeCompare(b, "ko"));
 
   const [mode, setMode] = useState<Mode>("view");
   const [tab, setTab] = useState<"raw" | "preview">("raw");
@@ -81,7 +83,7 @@ const DocBody: React.FC<{ dept: string }> = ({ dept }) => {
   // 문단별 편집일 때 잘라낸 앞/뒤 원문 (전체 편집이면 null)
   const [sectionCtx, setSectionCtx] = useState<{ before: string[]; after: string[]; title: string } | null>(null);
 
-  const goDept = (d: string) => navigate(`/wiki/${encodeURIComponent(d)}`);
+  const goDoc = (t: string) => navigate(wikiHref(t));
 
   /** 편집 시작: sectionIndex가 null이면 전체, 아니면 그 문단만 (나무위키의 문단별 [편집]) */
   const openEditor = (sectionIndex: number | null) => {
@@ -167,8 +169,8 @@ const DocBody: React.FC<{ dept: string }> = ({ dept }) => {
       <div className="p-5">
         {/* 문서 제목줄 + 편집/역사 버튼 */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100">
-            {dept}
+          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 break-all">
+            {title}
             {mode === "edit" && sectionCtx && (
               <span className="ml-2 text-sm font-bold text-slate-400">
                 — "{sectionCtx.title}" 문단 편집
@@ -201,30 +203,57 @@ const DocBody: React.FC<{ dept: string }> = ({ dept }) => {
             <p className="mt-1 text-right text-[11px] text-slate-400 dark:text-slate-500">
               최근 수정 시각: {updatedAt ? fmtFull(updatedAt) : "—"}
             </p>
-            <p className="mt-2 pb-2 text-xs border-b border-slate-200 dark:border-slate-700">
-              <span className="text-slate-400 dark:text-slate-500 mr-1.5">분류:</span>
-              <span
-                className="font-bold cursor-pointer hover:underline"
-                style={{ color: NAMU_GREEN }}
-                onClick={() => navigate("/wiki")}
-              >
-                실습나무위키
-              </span>
-            </p>
+            <div className="mt-2 pb-2 text-xs border-b border-slate-200 dark:border-slate-700 space-y-1">
+              <p>
+                <span className="text-slate-400 dark:text-slate-500 mr-1.5">분류:</span>
+                <span
+                  className="font-bold cursor-pointer hover:underline"
+                  style={{ color: NAMU_GREEN }}
+                  onClick={() => navigate("/wiki")}
+                >
+                  실습나무위키
+                </span>
+              </p>
+              {parent && (
+                <p>
+                  <span className="text-slate-400 dark:text-slate-500 mr-1.5">상위 문서:</span>
+                  <a
+                    onClick={() => goDoc(parent)}
+                    className="font-bold text-[#0275d8] dark:text-sky-400 cursor-pointer hover:underline break-all"
+                  >
+                    {parent}
+                  </a>
+                </p>
+              )}
+              {children.length > 0 && (
+                <p className="flex flex-wrap gap-x-2 gap-y-0.5">
+                  <span className="text-slate-400 dark:text-slate-500">하위 문서:</span>
+                  {children.map(c => (
+                    <a
+                      key={c}
+                      onClick={() => goDoc(c)}
+                      className="text-[#0275d8] dark:text-sky-400 cursor-pointer hover:underline break-all"
+                    >
+                      {c.slice(title.length + 1)}
+                    </a>
+                  ))}
+                </p>
+              )}
+            </div>
 
             {content.trim() ? (
               <WikiContent
                 content={content}
                 showToc
                 onEditSection={i => openEditor(i)}
-                onGoDept={goDept}
-                validDepts={WIKI_DEPTS}
+                onGoDoc={goDoc}
+                existingTitles={existingTitles}
               />
             ) : (
               <div className="text-center py-12">
                 <div className="text-4xl mb-3">🌱</div>
                 <p className="text-sm font-bold text-slate-600 dark:text-slate-300 mb-1">
-                  아직 아무도 이 문서를 만들지 않았어요
+                  이 문서는 아직 없습니다
                 </p>
                 <p className="text-[11px] text-slate-400 mb-5">첫 편집자가 되어 나무를 심어주세요!</p>
                 <button
@@ -257,7 +286,8 @@ const DocBody: React.FC<{ dept: string }> = ({ dept }) => {
             isSection={Boolean(sectionCtx)}
             onSave={() => doSave()}
             onCancel={() => setMode("view")}
-            goDept={goDept}
+            goDoc={goDoc}
+            existingTitles={existingTitles}
           />
         )}
 
@@ -293,8 +323,9 @@ const Editor: React.FC<{
   isSection: boolean;
   onSave: () => void;
   onCancel: () => void;
-  goDept: (d: string) => void;
-}> = ({ draft, setDraft, summary, setSummary, tab, setTab, saving, isSection, onSave, onCancel, goDept }) => {
+  goDoc: (t: string) => void;
+  existingTitles: string[];
+}> = ({ draft, setDraft, summary, setSummary, tab, setTab, saving, isSection, onSave, onCancel, goDoc, existingTitles }) => {
   const tabCls = (active: boolean) =>
     `px-4 py-2 text-sm font-bold border-b-2 transition-all ${
       active
@@ -323,7 +354,7 @@ const Editor: React.FC<{
         />
       ) : (
         <div className="min-h-[45vh] px-4 py-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-600">
-          <WikiContent content={draft} showToc={!isSection} onGoDept={goDept} validDepts={WIKI_DEPTS} />
+          <WikiContent content={draft} showToc={!isSection} onGoDoc={goDoc} existingTitles={existingTitles} />
         </div>
       )}
 
@@ -336,8 +367,9 @@ const Editor: React.FC<{
           <p>== 제목 == · === 소제목 === · ==== 소소제목 ====</p>
           <p>'''굵게''' · ''기울임'' · ~~취소선~~ · __밑줄__ · ^^윗첨자^^ · ,,아랫첨자,,</p>
           <p>* 목록 · 1. 번호 목록 · &gt; 인용문 · ---- 구분선</p>
-          <p>[[소화기내과]] 다른 과 문서 링크 · [[https://주소|이름]] 외부 링크</p>
+          <p>[[문서명]] 다른 문서 링크 (없는 문서는 빨갛게) · [[https://주소|이름]] 외부 링크</p>
           <p>[* 각주 내용] 각주 · ## 편집창에서만 보이는 주석</p>
+          <p className="font-sans">💡 제목에 /를 넣어 만들면 하위 문서가 돼요 (예: 외과/회진)</p>
         </div>
       </details>
 
@@ -350,7 +382,8 @@ const Editor: React.FC<{
       />
 
       <p className="mt-2 text-[10px] text-slate-400 dark:text-slate-500">
-        저장하면 바로 모두에게 보여요. 이전 판은 역사에 남아 언제든 되돌릴 수 있어요.
+        저장하면 바로 모두에게 보여요. 이전 판은 역사에 남아 언제든 되돌릴 수 있어요. 내용을
+        전부 지우고 저장하면 문서가 목록에서 사라져요 (역사에는 남음).
       </p>
 
       <div className="flex gap-2 justify-end mt-3">

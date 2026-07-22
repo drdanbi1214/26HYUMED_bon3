@@ -4,7 +4,8 @@ import { parseWiki, type WikiHeading } from "@/utils/wikiMarkup";
 // 나무위키 링크 색 (라이트/다크)
 const LINK_CLS =
   "text-[#0275d8] dark:text-sky-400 hover:underline cursor-pointer break-all";
-const DEADLINK_CLS = "text-red-500 dark:text-red-400 cursor-help";
+// 나무위키의 "없는 문서" 빨간 링크 — 눌러서 바로 새 문서를 만들 수 있음
+const DEADLINK_CLS = "text-red-500 dark:text-red-400 hover:underline cursor-pointer break-all";
 
 /** 인라인 나무마크 — 순서 중요: ''' 가 '' 보다 먼저 */
 const INLINE_SRC =
@@ -21,8 +22,8 @@ const INLINE_SRC =
 
 interface RenderCtx {
   notes: string[]; // 각주 내용 (등장 순서)
-  validDepts: string[];
-  onGoDept?: (dept: string) => void;
+  existingTitles: string[];
+  onGoDoc?: (title: string) => void;
 }
 
 function renderInline(text: string, ctx: RenderCtx, keyPrefix: string): React.ReactNode[] {
@@ -52,18 +53,17 @@ function renderInline(text: string, ctx: RenderCtx, keyPrefix: string): React.Re
             <span className="text-[0.7em] align-super ml-0.5">↗</span>
           </a>
         );
-      } else if (ctx.validDepts.includes(target)) {
+      } else if (ctx.existingTitles.includes(target)) {
         out.push(
-          <a key={k} onClick={() => ctx.onGoDept?.(target)} className={LINK_CLS}>
+          <a key={k} onClick={() => ctx.onGoDoc?.(target)} className={LINK_CLS}>
             {label}
           </a>
         );
       } else {
-        // 나무위키의 "없는 문서" 빨간 링크
         out.push(
-          <span key={k} className={DEADLINK_CLS} title="아직 없는 문서예요 (과 문서만 만들 수 있어요)">
+          <a key={k} onClick={() => ctx.onGoDoc?.(target)} className={DEADLINK_CLS} title="아직 없는 문서 — 눌러서 만들기">
             {label}
-          </span>
+          </a>
         );
       }
     } else if (g.fn != null) {
@@ -116,9 +116,10 @@ interface WikiContentProps {
   showToc?: boolean;
   /** 문단 [편집] 클릭 — tocIndex 전달. 없으면 [편집] 링크 숨김 */
   onEditSection?: (tocIndex: number) => void;
-  /** [[과이름]] 내부 링크 클릭 */
-  onGoDept?: (dept: string) => void;
-  validDepts?: string[];
+  /** [[문서명]] 내부 링크 클릭 (없는 문서도 눌러서 생성) */
+  onGoDoc?: (title: string) => void;
+  /** 존재하는 문서 제목들 — 링크 색 결정 (있으면 파랑, 없으면 빨강) */
+  existingTitles?: string[];
 }
 
 /** 나무위키풍 본문 렌더러: 목차 → 본문(문단 번호 + [편집]) → 각주 */
@@ -126,11 +127,11 @@ export const WikiContent: React.FC<WikiContentProps> = ({
   content,
   showToc = true,
   onEditSection,
-  onGoDept,
-  validDepts = [],
+  onGoDoc,
+  existingTitles = [],
 }) => {
   const { toc, blocks } = parseWiki(content);
-  const ctx: RenderCtx = { notes: [], validDepts, onGoDept };
+  const ctx: RenderCtx = { notes: [], existingTitles, onGoDoc };
 
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
