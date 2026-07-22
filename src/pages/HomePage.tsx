@@ -237,14 +237,18 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">{isBaseball ? "⚾" : "🖥️"}</span>
             <span>EHR 아이디</span>
           </button>
-          <button onClick={() => navigate("/restaurants")} className={gridBtn(10, "gap-3 col-span-2")}>
+          <button onClick={() => navigate("/restaurants")} className={gridBtn(10)}>
             <span>맛집인계</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🥄"}</span>
+          </button>
+          <button onClick={() => navigate("/suggest")} className={gridBtn(11)}>
+            <span className="text-xl">{isBaseball ? "⚾" : "📮"}</span>
+            <span>건의사항</span>
           </button>
         </div>
 
         <p className="text-center text-[10px] text-slate-400 dark:text-slate-600 pt-2 pb-2">
-          copyright© 이단비, ver5. 실습나무위키가 추가되었습니다 🌳
+          copyright© 이단비, ver5. 실습나무위키·건의사항이 추가되었습니다 🌳📮
         </p>
 
         {/* CHERRY BLOSSOM FEATURE — remove next block when done */}

@@ -16,6 +16,7 @@ import { OrRoomPage } from "@/pages/OrRoomPage";
 import { EhrPage } from "@/pages/EhrPage";
 import { WikiListPage } from "@/pages/WikiListPage";
 import { WikiDocPage } from "@/pages/WikiDocPage";
+import { SuggestPage } from "@/pages/SuggestPage";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
 import { useTheme } from "@/hooks/useTheme";
@@ -77,6 +78,7 @@ export const App: React.FC = () => {
                 <Route path="/ehr" element={<EhrPage {...commonProps} />} />
                 <Route path="/wiki" element={<WikiListPage {...commonProps} />} />
                 <Route path="/wiki/*" element={<WikiDocPage {...commonProps} />} />
+                <Route path="/suggest" element={<SuggestPage {...commonProps} />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </Shell>
