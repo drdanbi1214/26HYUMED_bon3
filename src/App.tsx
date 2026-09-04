@@ -18,6 +18,7 @@ import { WikiListPage } from "@/pages/WikiListPage";
 import { WikiDocPage } from "@/pages/WikiDocPage";
 import { SuggestPage } from "@/pages/SuggestPage";
 import { ToastProvider } from "@/components/ui/Toast";
+import { FeedbackPrompt } from "@/components/ui/FeedbackPrompt";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
 import { useTheme } from "@/hooks/useTheme";
 import { BlossomProvider } from "@/context/BlossomContext";
@@ -83,6 +84,7 @@ export const App: React.FC = () => {
               </Routes>
             </Shell>
             {isBlossom && <CherryBlossom />}
+            <FeedbackPrompt />
           </div>
         </BrowserRouter>
       </ToastProvider>
