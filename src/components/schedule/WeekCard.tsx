@@ -39,14 +39,22 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week, isCurrent, closures })
               <div key={i}>
                 <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 px-3 py-2 rounded-xl border border-slate-100 dark:border-slate-800">
                   <div>
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       <div className="text-sm font-bold">{x.dept}</div>
-                      {deptClosures.length > 0 && (
+                      {deptClosures.some(c => c.hospital !== "공휴일") && (
                         <button
                           onClick={() => setOpenIdx(openIdx === i ? null : i)}
                           className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-pink-100 text-pink-600 border border-pink-200 hover:bg-pink-200 active:bg-pink-300 transition-colors"
                         >
                           휴진!
+                        </button>
+                      )}
+                      {deptClosures.some(c => c.hospital === "공휴일") && (
+                        <button
+                          onClick={() => setOpenIdx(openIdx === i ? null : i)}
+                          className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200 hover:bg-amber-200 active:bg-amber-300 transition-colors"
+                        >
+                          공휴일!
                         </button>
                       )}
                     </div>
@@ -76,15 +84,23 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week, isCurrent, closures })
                 </div>
                 {openIdx === i && (
                   <div className="mt-1 px-3 py-2 rounded-xl bg-pink-50 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900 shadow-sm space-y-1">
-                    {deptClosures.map((c, ci) => (
-                      <div key={ci} className="text-[11px] text-pink-800 dark:text-pink-300">
-                        {c.doctor_name}{" "}
-                        {c.start_date === c.end_date
+                    {deptClosures.map((c, ci) => {
+                      const isHoliday = c.hospital === "공휴일";
+                      const name = isHoliday ? "대한민국 공휴일" : c.doctor_name;
+                      const dateText =
+                        c.start_date === c.end_date
                           ? fmtD(new Date(c.start_date + "T00:00:00"))
-                          : `${fmtD(new Date(c.start_date + "T00:00:00"))}~${fmtD(new Date(c.end_date + "T00:00:00"))}`}{" "}
-                        {c.reason}
-                      </div>
-                    ))}
+                          : `${fmtD(new Date(c.start_date + "T00:00:00"))}~${fmtD(new Date(c.end_date + "T00:00:00"))}`;
+
+                      return (
+                        <div
+                          key={ci}
+                          className={`text-[11px] ${isHoliday ? "text-amber-800 dark:text-amber-300" : "text-pink-800 dark:text-pink-300"}`}
+                        >
+                          {name} {dateText} {c.reason}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

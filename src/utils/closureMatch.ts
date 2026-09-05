@@ -79,13 +79,15 @@ export function getRelevantClosures(
   const isMerged = MERGED_BASES.has(base);
 
   const filtered = closures.filter(c => {
-    const codeMatch =
-      base === "소아청소년과" ? PEDS_CODES.has(c.dept_code) : c.dept_code === schedCode;
-    if (!codeMatch) return false;
-
     const start = parseLocalDate(c.start_date);
     const end = parseLocalDate(c.end_date);
     if (start > weekEnd || end < weekStart) return false;
+
+    if (c.hospital === "공휴일") return true;
+
+    const codeMatch =
+      base === "소아청소년과" ? PEDS_CODES.has(c.dept_code) : c.dept_code === schedCode;
+    if (!codeMatch) return false;
 
     if (isMerged) return true;
     return !hospital || c.hospital === hospital;
