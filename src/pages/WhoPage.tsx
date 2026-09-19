@@ -5,6 +5,13 @@ import { Icon } from "@/components/ui/Icon";
 import { useAllDepts, useWhoResults } from "@/hooks/useWhoSearch";
 import { blockLabel, curWeek, fmtD, weekDates } from "@/utils/date";
 
+/** 분기(1/2/3)별 셀 배경색. blockLabel 앞자리 - 1 로 인덱싱 */
+const BLOCK_TINTS = [
+  "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+  "bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300",
+  "bg-violet-100 text-violet-800 dark:bg-violet-500/15 dark:text-violet-300",
+];
+
 interface WhoPageProps {
   isDark: boolean;
   onToggleDark: () => void;
@@ -139,8 +146,8 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
                       {fmtD(weekDates(r.w).s)}~{fmtD(weekDates(r.w).e)}
                     </span>
                     <span
-                      className={`text-[10px] leading-snug font-bold tabular-nums self-center ${
-                        isCur ? "text-blue-500 dark:text-blue-400" : "text-slate-400 dark:text-slate-500"
+                      className={`text-[10px] font-bold tabular-nums flex items-center justify-center -my-1 ${
+                        BLOCK_TINTS[Math.ceil(r.w / 12) - 1]
                       }`}
                     >
                       {blockLabel(r.w)}
