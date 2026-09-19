@@ -42,7 +42,7 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
         }
       />
 
-      <div className="space-y-6 animate-in fade-in slide-in-from-right duration-500 pb-20">
+      <div className="space-y-3 animate-in fade-in slide-in-from-right duration-500 pb-20">
         <div className="relative z-30 px-1">
           <div className="relative">
             <input
@@ -75,51 +75,59 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
         </div>
 
         {results ? (
-          <div className="space-y-4">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl mb-6">
-              <h4 className="text-xl font-black mb-1">{selected}</h4>
-              <p className="text-blue-100 text-sm">주차별 실습 인원 명단입니다.</p>
+          <div className="space-y-2">
+            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl px-4 py-3 text-white shadow-lg">
+              <h4 className="text-base font-black leading-tight">{selected}</h4>
+              <p className="text-blue-100 text-[11px]">주차별 실습 인원 명단입니다.</p>
             </div>
-            <div className="space-y-3">
+
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
+              {/* 열 제목 — 주차마다 반복하지 않고 맨 위에 한 번만 */}
+              <div className="grid grid-cols-[2.4rem_1fr_1fr] gap-x-1.5 px-2 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <span />
+                <span>서울</span>
+                <span className="border-l border-slate-200 dark:border-slate-700 pl-1.5">구리</span>
+              </div>
+
               {results.map(r => {
                 const isCur = r.w === cw;
+                const cell = (names: string[], extraClass = "") => (
+                  <div className={`flex flex-wrap gap-x-1 gap-y-0.5 ${extraClass}`}>
+                    {names.length > 0 ? (
+                      names.map((name, pIdx) => (
+                        <span
+                          key={pIdx}
+                          className={`text-[11px] leading-snug px-1 rounded font-medium ${
+                            isCur
+                              ? "bg-blue-500/15 text-blue-700 dark:text-blue-300"
+                              : "text-slate-600 dark:text-slate-400"
+                          }`}
+                        >
+                          {name}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[11px] leading-snug text-slate-300 dark:text-slate-600">–</span>
+                    )}
+                  </div>
+                );
+
                 return (
                   <div
                     key={r.w}
-                    className={`p-4 rounded-2xl border transition-all ${
-                      isCur
-                        ? "bg-blue-500/10 border-blue-500 shadow-md ring-1 ring-blue-500/20"
-                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                    className={`grid grid-cols-[2.4rem_1fr_1fr] gap-x-1.5 px-2 py-1 border-b border-slate-100 dark:border-slate-800/60 last:border-none ${
+                      isCur ? "bg-blue-500/10" : ""
                     }`}
                   >
-                    <div className="flex justify-between items-center mb-3">
-                      <span className={`text-sm font-black ${isCur ? "text-blue-600 dark:text-blue-400" : "text-slate-800 dark:text-slate-100"}`}>
-                        {r.w}주차
-                      </span>
-                      {isCur && (
-                        <span className="text-[10px] font-black bg-blue-500 text-white px-2 py-0.5 rounded-full animate-pulse">
-                          CURRENT
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {r.people.length > 0 ? (
-                        r.people.map((name, pIdx) => (
-                          <span
-                            key={pIdx}
-                            className={`text-[11px] px-2.5 py-1 rounded-lg border font-medium ${
-                              isCur
-                                ? "bg-blue-500/10 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300"
-                                : "bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-slate-600 dark:text-slate-400"
-                            }`}
-                          >
-                            {name}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-[11px] text-slate-400 italic">실습 인원 없음</span>
-                      )}
-                    </div>
+                    <span
+                      className={`text-[11px] font-black leading-snug ${
+                        isCur ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500"
+                      }`}
+                    >
+                      {r.w}주{isCur && <span className="text-[9px] ml-0.5 align-top">●</span>}
+                    </span>
+                    {cell(r.seoul)}
+                    {cell(r.guri, "border-l border-slate-100 dark:border-slate-800/60 pl-1.5")}
                   </div>
                 );
               })}
