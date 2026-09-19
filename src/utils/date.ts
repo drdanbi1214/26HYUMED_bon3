@@ -29,6 +29,9 @@ export function weekDates(w: number) {
   return { s, e };
 }
 
+/** 병원 실습 종료일 = 36주차 금요일 (2026-11-13). 주차 계산이 바뀌면 같이 따라간다. */
+export const ROTATION_END = weekDates(36).e;
+
 /** Date → "M/D" 짧은 포맷 */
 export function fmtD(d: Date) {
   return `${d.getMonth() + 1}/${d.getDate()}`;
@@ -49,11 +52,11 @@ export function curWeek(): number | "summer" | null {
   return null;
 }
 
-/** 여름방학 시작까지 며칠 남았나 (지나면 음수) */
+/** 병원 실습 종료까지 며칠 남았나 (지나면 음수) */
 export function dDay() {
   const n = new Date();
   n.setHours(0, 0, 0, 0);
-  const t = new Date(SUMMER_START);
+  const t = new Date(ROTATION_END);
   t.setHours(0, 0, 0, 0);
   return Math.ceil((t.getTime() - n.getTime()) / 864e5);
 }

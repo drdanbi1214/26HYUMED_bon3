@@ -169,9 +169,9 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             }`}
           >
             <div>
-              <div className="text-xs font-bold text-slate-400 mb-1">여름방학!!!!!!!!ㅠㅠ</div>
+              <div className="text-xs font-bold text-slate-400 mb-1">Dobby is free 🧦</div>
               <div className={`text-3xl font-black dark:text-blue-400 ${plain ? pal.ddayNum : "text-blue-600"}`}>
-                {cw === "summer" ? "방학중! 🏝️" : `D-${dd}`}
+                {dd > 0 ? `D-${dd}` : dd === 0 ? "D-DAY 🧦" : "자유! 🧦"}
               </div>
             </div>
             <div className="text-right">
