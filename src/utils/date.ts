@@ -13,6 +13,14 @@ export function weekStart(w: number): Date {
   return new Date(2026, 1, 23 + (w - 2) * 7 + 21);             // 여름방학 3주 skip
 }
 
+/**
+ * 주차 → "분기:주차" 표기.
+ * 1~12주 = 1:1~1:12, 13~24주 = 2:1~2:12, 25~36주 = 3:1~3:12
+ */
+export function blockLabel(w: number): string {
+  return `${Math.ceil(w / 12)}:${((w - 1) % 12) + 1}`;
+}
+
 /** 주차 → 월~금 날짜 범위 */
 export function weekDates(w: number) {
   const s = weekStart(w);

@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Icon } from "@/components/ui/Icon";
 import { useAllDepts, useWhoResults } from "@/hooks/useWhoSearch";
-import { curWeek, fmtD, weekDates } from "@/utils/date";
-
-/** 주차 → "분기:주차" 표기. 1~12주 = 1:1~1:12, 13~24주 = 2:1~2:12, 25~36주 = 3:1~3:12 */
-function blockLabel(w: number): string {
-  return `${Math.ceil(w / 12)}:${((w - 1) % 12) + 1}`;
-}
+import { blockLabel, curWeek, fmtD, weekDates } from "@/utils/date";
 
 interface WhoPageProps {
   isDark: boolean;

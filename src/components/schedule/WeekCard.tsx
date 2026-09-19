@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { DEPT_LINKS } from "@/data/schedule";
 import { db, getLinkKey } from "@/utils/schedule";
-import { fmtD } from "@/utils/date";
+import { blockLabel, fmtD } from "@/utils/date";
 import { Icon } from "@/components/ui/Icon";
 import { getRelevantClosures } from "@/utils/closureMatch";
 import type { WeekData, Closure } from "@/types";
@@ -25,7 +25,12 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week, isCurrent, closures })
       }`}
     >
       <div className="flex justify-between items-center mb-1.5">
-        <span className="text-sm font-black">{w}주차</span>
+        <span className="text-sm font-black">
+          {w}주차
+          <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 ml-1.5">
+            {blockLabel(w)}
+          </span>
+        </span>
         <span className="text-[10px] text-slate-400">
           {fmtD(d.s)} ~ {fmtD(d.e)}
         </span>
