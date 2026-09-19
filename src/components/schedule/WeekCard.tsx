@@ -92,12 +92,35 @@ export const WeekCard: React.FC<WeekCardProps> = ({ week, isCurrent, closures })
                           ? fmtD(new Date(c.start_date + "T00:00:00"))
                           : `${fmtD(new Date(c.start_date + "T00:00:00"))}~${fmtD(new Date(c.end_date + "T00:00:00"))}`;
 
+                      // reason 앞의 'new! ' / '취소됨! ' 은 최신 업데이트 표시용 마커
+                      const isCancelled = c.reason.startsWith("취소됨!");
+                      const isNew = c.reason.startsWith("new!");
+                      const reasonText = c.reason.replace(/^(?:new!|취소됨!)\s*/, "");
+
                       return (
                         <div
                           key={ci}
-                          className={`text-[11px] ${isHoliday ? "text-amber-800 dark:text-amber-300" : "text-pink-800 dark:text-pink-300"}`}
+                          className={`text-[11px] flex items-center gap-1 flex-wrap ${
+                            isCancelled
+                              ? "text-slate-400 dark:text-slate-500"
+                              : isHoliday
+                                ? "text-amber-800 dark:text-amber-300"
+                                : "text-pink-800 dark:text-pink-300"
+                          }`}
                         >
-                          {name} {dateText} {c.reason}
+                          {isNew && (
+                            <span className="text-[9px] font-bold px-1 py-px rounded bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800">
+                              new!
+                            </span>
+                          )}
+                          <span className={isCancelled ? "line-through decoration-slate-400" : undefined}>
+                            {name} {dateText} {reasonText}
+                          </span>
+                          {isCancelled && (
+                            <span className="text-[9px] font-bold px-1 py-px rounded bg-slate-200 text-slate-600 border border-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600">
+                              취소됨!
+                            </span>
+                          )}
                         </div>
                       );
                     })}
