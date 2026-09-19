@@ -33,8 +33,10 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
     setSelected(dept);
   };
 
-  // 병원을 나눠 보여주는 과는 3열, 통합해서 보여주는 과(외과)는 2열
-  const cols = results?.split ? "grid-cols-[4.4rem_1fr_1fr]" : "grid-cols-[4.4rem_1fr]";
+  // 주차 | 날짜 | 분기:주차 | 서울 | 구리 (외과처럼 병원을 합치는 과는 마지막 열 없음)
+  const cols = results?.split
+    ? "grid-cols-[2.3rem_3.6rem_1.9rem_1fr_1fr]"
+    : "grid-cols-[2.3rem_3.6rem_1.9rem_1fr]";
 
   return (
     <>
@@ -92,9 +94,11 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
               {/* 열 제목 — 주차마다 반복하지 않고 맨 위에 한 번만 */}
               {results.split && (
-                <div className={`grid ${cols} gap-x-1.5 px-2 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400`}>
+                <div className={`grid ${cols} gap-x-1 px-2 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400`}>
                   <span />
-                  <span>서울</span>
+                  <span />
+                  <span />
+                  <span className="border-l border-slate-200 dark:border-slate-700 pl-1.5">서울</span>
                   <span className="border-l border-slate-200 dark:border-slate-700 pl-1.5">구리</span>
                 </div>
               )}
@@ -125,25 +129,28 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
                 return (
                   <div
                     key={r.w}
-                    className={`grid ${cols} gap-x-1.5 px-2 py-1 border-b border-slate-100 dark:border-slate-800/60 last:border-none ${
+                    className={`grid ${cols} gap-x-1 px-2 py-1 border-b border-slate-100 dark:border-slate-800/60 last:border-none ${
                       isCur ? "bg-blue-500/10" : ""
                     }`}
                   >
-                    <div className="leading-tight">
-                      <div
-                        className={`text-[11px] font-black ${
-                          isCur ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
-                        }`}
-                      >
-                        {r.w}주
-                        <span className="font-bold opacity-60 ml-1">{blockLabel(r.w)}</span>
-                        {isCur && <span className="text-[9px] ml-0.5 align-top">●</span>}
-                      </div>
-                      <div className="text-[9px] text-slate-400 dark:text-slate-600 tabular-nums">
-                        {fmtD(weekDates(r.w).s)}~{fmtD(weekDates(r.w).e)}
-                      </div>
-                    </div>
-                    {cell(r.seoul)}
+                    <span
+                      className={`text-[11px] font-black leading-snug ${
+                        isCur ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
+                      }`}
+                    >
+                      {r.w}주{isCur && <span className="text-[8px] ml-px align-top">●</span>}
+                    </span>
+                    <span className="text-[9px] leading-snug text-slate-400 dark:text-slate-600 tabular-nums self-center">
+                      {fmtD(weekDates(r.w).s)}~{fmtD(weekDates(r.w).e)}
+                    </span>
+                    <span
+                      className={`text-[10px] leading-snug font-bold tabular-nums self-center ${
+                        isCur ? "text-blue-500 dark:text-blue-400" : "text-slate-400 dark:text-slate-500"
+                      }`}
+                    >
+                      {blockLabel(r.w)}
+                    </span>
+                    {cell(r.seoul, "border-l border-slate-100 dark:border-slate-800/60 pl-1.5")}
                     {results.split &&
                       cell(r.guri, "border-l border-slate-100 dark:border-slate-800/60 pl-1.5")}
                   </div>
