@@ -198,10 +198,16 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span className="text-xl">{isBaseball ? "⚾" : "✏️"}</span>
             <span>유포폴</span>
           </a>
-          <button onClick={() => navigate("/menu")} className={gridBtn(2)}>
+          {/* 서울병원 직원식당 메뉴. 더 이상 이미지로 안 나와서 공식 페이지로 바로 보낸다 */}
+          <a
+            href="https://hyumc-menu.pages.dev/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={gridBtn(2)}
+          >
             <span>병원식당메뉴</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🍱"}</span>
-          </button>
+          </a>
           <button onClick={() => navigate("/who")} className={gridBtn(3)}>
             <span>먼저 돈 사람은?</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🔍"}</span>
