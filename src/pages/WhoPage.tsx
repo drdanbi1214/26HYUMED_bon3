@@ -3,7 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/layout/Header";
 import { Icon } from "@/components/ui/Icon";
 import { useAllDepts, useWhoResults } from "@/hooks/useWhoSearch";
-import { curWeek } from "@/utils/date";
+import { curWeek, fmtD, weekDates } from "@/utils/date";
+
+/** 주차 → "분기:주차" 표기. 1~12주 = 1:1~1:12, 13~24주 = 2:1~2:12, 25~36주 = 3:1~3:12 */
+function blockLabel(w: number): string {
+  return `${Math.ceil(w / 12)}:${((w - 1) % 12) + 1}`;
+}
 
 interface WhoPageProps {
   isDark: boolean;
@@ -29,7 +34,7 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
   };
 
   // 병원을 나눠 보여주는 과는 3열, 통합해서 보여주는 과(외과)는 2열
-  const cols = results?.split ? "grid-cols-[2.4rem_1fr_1fr]" : "grid-cols-[2.4rem_1fr]";
+  const cols = results?.split ? "grid-cols-[4.4rem_1fr_1fr]" : "grid-cols-[4.4rem_1fr]";
 
   return (
     <>
@@ -124,13 +129,20 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
                       isCur ? "bg-blue-500/10" : ""
                     }`}
                   >
-                    <span
-                      className={`text-[11px] font-black leading-snug ${
-                        isCur ? "text-blue-600 dark:text-blue-400" : "text-slate-400 dark:text-slate-500"
-                      }`}
-                    >
-                      {r.w}주{isCur && <span className="text-[9px] ml-0.5 align-top">●</span>}
-                    </span>
+                    <div className="leading-tight">
+                      <div
+                        className={`text-[11px] font-black ${
+                          isCur ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
+                        }`}
+                      >
+                        {r.w}주
+                        <span className="font-bold opacity-60 ml-1">{blockLabel(r.w)}</span>
+                        {isCur && <span className="text-[9px] ml-0.5 align-top">●</span>}
+                      </div>
+                      <div className="text-[9px] text-slate-400 dark:text-slate-600 tabular-nums">
+                        {fmtD(weekDates(r.w).s)}~{fmtD(weekDates(r.w).e)}
+                      </div>
+                    </div>
                     {cell(r.seoul)}
                     {results.split &&
                       cell(r.guri, "border-l border-slate-100 dark:border-slate-800/60 pl-1.5")}
