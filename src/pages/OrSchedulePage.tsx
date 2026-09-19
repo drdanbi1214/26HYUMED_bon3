@@ -5,6 +5,7 @@ import { OrExcelUploader } from "@/components/or/OrExcelUploader";
 import { OrGridTable } from "@/components/or/OrGridTable";
 import { ROOM_COLORS, useOrRooms } from "@/hooks/useOrRooms";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { fmtD } from "@/utils/date";
 import {
   OrCase,
   SectionGrid,
@@ -127,7 +128,7 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
             )}
             {roomsApi.rooms.map(r => (
               <div key={r.id} className="space-y-1.5">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => navigate(`/or-schedule/room/${r.id}`)}
                     className={`flex-1 flex items-center justify-between px-4 py-3 rounded-2xl border text-left active:scale-[0.98] transition-all ${
@@ -148,6 +149,12 @@ export const OrSchedulePage: React.FC<OrSchedulePageProps> = ({ isDark, onToggle
                       {r.view == null ? "시간표 없음" : VIEW_LABELS[r.view].split(" ")[0]} →
                     </span>
                   </button>
+                  <span
+                    className="shrink-0 text-[10px] leading-tight text-slate-400 dark:text-slate-500 tabular-nums text-right w-8"
+                    title={`${new Date(r.created_at).toLocaleString("ko-KR")} 생성`}
+                  >
+                    {fmtD(new Date(r.created_at))}
+                  </span>
                   <button
                     onClick={() => deleteRoom(r.id, r.name)}
                     aria-label="방 삭제"

@@ -28,6 +28,9 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
     setSelected(dept);
   };
 
+  // 병원을 나눠 보여주는 과는 3열, 통합해서 보여주는 과(외과)는 2열
+  const cols = results?.split ? "grid-cols-[2.4rem_1fr_1fr]" : "grid-cols-[2.4rem_1fr]";
+
   return (
     <>
       <Header
@@ -83,13 +86,15 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
 
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-hidden">
               {/* 열 제목 — 주차마다 반복하지 않고 맨 위에 한 번만 */}
-              <div className="grid grid-cols-[2.4rem_1fr_1fr] gap-x-1.5 px-2 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                <span />
-                <span>서울</span>
-                <span className="border-l border-slate-200 dark:border-slate-700 pl-1.5">구리</span>
-              </div>
+              {results.split && (
+                <div className={`grid ${cols} gap-x-1.5 px-2 py-1.5 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase tracking-wider text-slate-400`}>
+                  <span />
+                  <span>서울</span>
+                  <span className="border-l border-slate-200 dark:border-slate-700 pl-1.5">구리</span>
+                </div>
+              )}
 
-              {results.map(r => {
+              {results.weeks.map(r => {
                 const isCur = r.w === cw;
                 const cell = (names: string[], extraClass = "") => (
                   <div className={`flex flex-wrap gap-x-1 gap-y-0.5 ${extraClass}`}>
@@ -115,7 +120,7 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
                 return (
                   <div
                     key={r.w}
-                    className={`grid grid-cols-[2.4rem_1fr_1fr] gap-x-1.5 px-2 py-1 border-b border-slate-100 dark:border-slate-800/60 last:border-none ${
+                    className={`grid ${cols} gap-x-1.5 px-2 py-1 border-b border-slate-100 dark:border-slate-800/60 last:border-none ${
                       isCur ? "bg-blue-500/10" : ""
                     }`}
                   >
@@ -127,7 +132,8 @@ export const WhoPage: React.FC<WhoPageProps> = ({ isDark, onToggleDark }) => {
                       {r.w}주{isCur && <span className="text-[9px] ml-0.5 align-top">●</span>}
                     </span>
                     {cell(r.seoul)}
-                    {cell(r.guri, "border-l border-slate-100 dark:border-slate-800/60 pl-1.5")}
+                    {results.split &&
+                      cell(r.guri, "border-l border-slate-100 dark:border-slate-800/60 pl-1.5")}
                   </div>
                 );
               })}
