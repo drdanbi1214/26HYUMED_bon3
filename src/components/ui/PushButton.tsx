@@ -9,8 +9,13 @@ function urlBase64ToUint8Array(base64String: string) {
   return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)))
 }
 
-/** 일실기 푸시 알림 구독/해제 버튼 (설정 페이지에서 사용) */
-export function PushButton() {
+interface PushButtonProps {
+  /** full = 설정 페이지의 가로 버튼, icon = 홈 D-Day 카드 안의 아이콘 버튼 */
+  variant?: 'full' | 'icon'
+}
+
+/** 일실기 푸시 알림 구독/해제 버튼 */
+export function PushButton({ variant = 'full' }: PushButtonProps = {}) {
   const [status, setStatus] = useState<'idle' | 'subscribed' | 'denied' | 'loading'>('idle')
 
   useEffect(() => {
@@ -72,6 +77,38 @@ export function PushButton() {
     } catch {
       setStatus('subscribed')
     }
+  }
+
+  if (variant === 'icon') {
+    const label =
+      status === 'subscribed' ? '일실기 알림 끄기 (현재 켜짐)'
+      : status === 'denied' ? '알림이 차단됨 — 브라우저 설정에서 허용해주세요'
+      : '일실기 알림 켜기 (매일 밤 11시 30분)'
+    const face =
+      status === 'subscribed' ? '🔔'
+      : status === 'loading' ? '⏳'
+      : status === 'denied' ? '🔕'
+      : '⏰'
+    const onClick =
+      status === 'subscribed' ? unsubscribe
+      : status === 'denied'
+        ? () => alert('알림이 차단돼 있어요.\n\n브라우저(또는 휴대폰) 설정에서 이 사이트의 알림을 허용한 뒤 다시 눌러주세요.')
+        : subscribe
+    return (
+      <button
+        onClick={onClick}
+        disabled={status === 'loading'}
+        aria-label={label}
+        title={label}
+        className={`w-11 h-11 shrink-0 rounded-2xl border flex items-center justify-center text-xl active:scale-90 transition-all disabled:opacity-60 ${
+          status === 'subscribed'
+            ? 'bg-indigo-500 border-indigo-500 shadow-md shadow-indigo-500/30'
+            : 'bg-white/70 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700'
+        }`}
+      >
+        {face}
+      </button>
+    )
   }
 
   if (status === 'subscribed') return (

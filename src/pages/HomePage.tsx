@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { curWeek, dDay } from "@/utils/date";
+import { PushButton } from "@/components/ui/PushButton";
 import { resolveSearchQuery } from "@/utils/buildSchedule";
 import type { HistoryItem } from "@/types";
 import { useBlossomContext } from "@/context/BlossomContext";
@@ -174,11 +175,15 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
                 {dd > 0 ? `D-${dd}` : dd === 0 ? "D-DAY 🧦" : "자유! 🧦"}
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-xs font-bold text-slate-400 uppercase mb-1">Current Week</div>
-              <div className="text-xl font-black text-slate-700 dark:text-slate-200">
-                {cw === "summer" ? "Summer" : cw === null ? "실습 예정" : `${cw}주차`}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="text-xs font-bold text-slate-400 uppercase mb-1">Current Week</div>
+                <div className="text-xl font-black text-slate-700 dark:text-slate-200">
+                  {cw === "summer" ? "Summer" : cw === null ? "실습 예정" : `${cw}주차`}
+                </div>
               </div>
+              {/* 일실기 알림 켜기/끄기 — 설정 페이지에도 같은 기능이 있다 */}
+              <PushButton variant="icon" />
             </div>
           </div>
         )}
