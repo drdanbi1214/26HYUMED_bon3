@@ -217,6 +217,10 @@ export const HomePage: React.FC<HomePageProps> = ({ isDark, onToggleDark }) => {
             <span>먼저 돈 사람은?</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🔍"}</span>
           </button>
+          <button onClick={() => navigate("/handover")} className="gap-3 py-3 rounded-3xl border border-amber-400 bg-amber-300 font-bold text-amber-950 shadow-lg shadow-amber-500/25 transition-all active:scale-95 hover:bg-amber-200 dark:border-amber-300 dark:bg-amber-300 dark:text-amber-950">
+            <span>인계 모아보기</span>
+            <span className="text-xl">{isBaseball ? "⚾" : "📚"}</span>
+          </button>
           <button onClick={() => navigate("/or-schedule")} className={gridBtn(4)}>
             <span>수술 시간표</span>
             <span className="text-xl">{isBaseball ? "⚾" : "🏥"}</span>

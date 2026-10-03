@@ -7,11 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "sync-handovers": "node scripts/sync-handovers.mjs",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@google-cloud/local-auth": "^3.0.1",
     "@supabase/supabase-js": "2.39.7",
     "exceljs": "^4.4.0",
+    "googleapis": "^183.0.0",
     "jszip": "^3.10.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

@@ -17,6 +17,7 @@ import { EhrPage } from "@/pages/EhrPage";
 import { WikiListPage } from "@/pages/WikiListPage";
 import { WikiDocPage } from "@/pages/WikiDocPage";
 import { SuggestPage } from "@/pages/SuggestPage";
+import { HandoverPage } from "@/pages/HandoverPage";
 import { ToastProvider } from "@/components/ui/Toast";
 import { FeedbackPrompt } from "@/components/ui/FeedbackPrompt";
 import { SupabaseBanner } from "@/components/layout/SupabaseBanner";
@@ -70,6 +71,7 @@ export const App: React.FC = () => {
                 <Route path="/menu" element={<MenuPage {...commonProps} />} />
                 <Route path="/shuttle" element={<ShuttlePage {...commonProps} />} />
                 <Route path="/who" element={<WhoPage {...commonProps} />} />
+                <Route path="/handover" element={<HandoverPage {...commonProps} />} />
                 <Route path="/prof" element={<ProfPage {...commonProps} />} />
                 <Route path="/restaurants" element={<RestaurantsPage {...commonProps} />} />
                 <Route path="/restaurants/:id" element={<RestaurantDetailPage {...commonProps} />} />
